@@ -1,0 +1,17 @@
+cmake_minimum_required(VERSION 3.5)
+project(main)
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+#set(QMAKE_CXXFLAGS "-std=c++11")
+include_directories(/opt/OpenBLAS/include)
+include_directories(/usr/local/cuda/include)
+include_directories(/usr/local/tensorrt/include)
+link_directories(/usr/local/tensorrt/lib)
+link_directories(/opt/OpenBLAS/lib)
+link_directories(/usr/local/cuda/lib64)
+
+find_package( OpenCV REQUIRED)
+
+AUX_SOURCE_DIRECTORY(./src DIR_SRCS)
+add_executable( main ${DIR_SRCS} src/pnet_rt.cpp src/common.h src/common.cpp src/pnet_rt.h)
+target_link_libraries( main ${OpenCV_LIBS} )
+target_link_libraries( main openblas)
