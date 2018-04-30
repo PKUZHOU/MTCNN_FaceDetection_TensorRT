@@ -1,4 +1,4 @@
-/home/zhou/Downloads/clion-2018.1.1/bin/cmake/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /home/zhou/CLionProjects/MTCNN_TensorRT
+/home/zhou/Downloads/clion-2018.1.1/bin/cmake/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /home/zhou/MTCNN_TensorRT
 -- The C compiler identification is GNU 5.4.0
 -- The CXX compiler identification is GNU 5.4.0
 -- Check for working C compiler: /usr/bin/cc
@@ -15,4 +15,4 @@
 -- Detecting CXX compile features - done
 -- Configuring done
 -- Generating done
--- Build files have been written to: /home/zhou/CLionProjects/MTCNN_TensorRT/cmake-build-debug
+-- Build files have been written to: /home/zhou/MTCNN_TensorRT/cmake-build-debug

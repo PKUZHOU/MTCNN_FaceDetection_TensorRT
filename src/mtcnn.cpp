@@ -1,162 +1,162 @@
 #include "mtcnn.h"
-
-Pnet::Pnet(){
-    Pthreshold = 0.6;
-    nms_threshold = 0.5;
-    firstFlag = true;
-    this->rgb = new pBox;
-
-    this->conv1_matrix = new pBox;
-    this->conv1 = new pBox;
-    this->maxPooling1 = new pBox;
-
-    this->maxPooling_matrix = new pBox;
-    this->conv2 = new pBox;
-
-    this->conv3_matrix = new pBox;
-    this->conv3 = new pBox;
-
-    this->score_matrix = new pBox;
-    this->score_ = new pBox;
-
-    this->location_matrix = new pBox;
-    this->location_ = new pBox;
-
-    this->conv1_wb = new Weight;
-    this->prelu_gmma1 = new pRelu;
-    this->conv2_wb = new Weight;
-    this->prelu_gmma2 = new pRelu;
-    this->conv3_wb = new Weight;
-    this->prelu_gmma3 = new pRelu;
-    this->conv4c1_wb = new Weight;
-    this->conv4c2_wb = new Weight;
-    //                                 w       sc  lc ks s  p
-    long conv1 = initConvAndFc(this->conv1_wb, 10, 3, 3, 1, 0);
-    initpRelu(this->prelu_gmma1, 10);
-    long conv2 = initConvAndFc(this->conv2_wb, 16, 10, 3, 1, 0);
-    initpRelu(this->prelu_gmma2, 16);
-    long conv3 = initConvAndFc(this->conv3_wb, 32, 16, 3, 1, 0);
-    initpRelu(this->prelu_gmma3, 32);
-    long conv4c1 = initConvAndFc(this->conv4c1_wb, 2, 32, 1, 1, 0);
-    long conv4c2 = initConvAndFc(this->conv4c2_wb, 4, 32, 1, 1, 0);
-    long dataNumber[13] = {conv1,10,10, conv2,16,16, conv3,32,32, conv4c1,2, conv4c2,4};
-    mydataFmt *pointTeam[13] = {this->conv1_wb->pdata, this->conv1_wb->pbias, this->prelu_gmma1->pdata, \
-                            this->conv2_wb->pdata, this->conv2_wb->pbias, this->prelu_gmma2->pdata, \
-                            this->conv3_wb->pdata, this->conv3_wb->pbias, this->prelu_gmma3->pdata, \
-                            this->conv4c1_wb->pdata, this->conv4c1_wb->pbias, \
-                            this->conv4c2_wb->pdata, this->conv4c2_wb->pbias \
-                            };
-    string filename = "Pnet.txt";
-    readData(filename, dataNumber, pointTeam);
-}
-Pnet::~Pnet(){
-    freepBox(this->rgb);
-    freepBox(this->conv1);
-    freepBox(this->maxPooling1);
-    freepBox(this->conv2);
-    freepBox(this->conv3);
-    freepBox(this->score_);
-    freepBox(this->location_);
-
-    freepBox(this->conv1_matrix);
-    freeWeight(this->conv1_wb);
-    freepRelu(this->prelu_gmma1);
-    freepBox(this->maxPooling_matrix);
-    freeWeight(this->conv2_wb);
-    freepBox(this->conv3_matrix);
-    freepRelu(this->prelu_gmma2);
-    freeWeight(this->conv3_wb);
-    freepBox(this->score_matrix);
-    freepRelu(this->prelu_gmma3);
-    freeWeight(this->conv4c1_wb);
-    freepBox(this->location_matrix);
-    freeWeight(this->conv4c2_wb);
-}
-
-void Pnet::run(Mat &image, float scale){
-    if(firstFlag){
-        image2MatrixInit(image, this->rgb);
-
-        feature2MatrixInit(this->rgb, this->conv1_matrix, this->conv1_wb);
-        convolutionInit(this->conv1_wb, this->rgb, this->conv1, this->conv1_matrix);
-
-        maxPoolingInit(this->conv1, this->maxPooling1, 2, 2);
-        feature2MatrixInit(this->maxPooling1, this->maxPooling_matrix, this->conv2_wb);
-        convolutionInit(this->conv2_wb, this->maxPooling1, this->conv2, this->maxPooling_matrix);
-        
-        feature2MatrixInit(this->conv2, this->conv3_matrix, this->conv3_wb);
-        convolutionInit(this->conv3_wb, this->conv2, this->conv3, this->conv3_matrix);
-
-        feature2MatrixInit(this->conv3, this->score_matrix, this->conv4c1_wb);
-        convolutionInit(this->conv4c1_wb, this->conv3, this->score_, this->score_matrix);
-
-        feature2MatrixInit(this->conv3, this->location_matrix, this->conv4c2_wb);
-        convolutionInit(this->conv4c2_wb, this->conv3, this->location_, this->location_matrix);
-        firstFlag = false;
-    }
-
-    image2Matrix(image, this->rgb);
-
-    feature2Matrix(this->rgb, this->conv1_matrix, this->conv1_wb);
-    convolution(this->conv1_wb, this->rgb, this->conv1, this->conv1_matrix);
-    prelu(this->conv1, this->conv1_wb->pbias, this->prelu_gmma1->pdata);
-    //Pooling layer
-    maxPooling(this->conv1, this->maxPooling1, 2, 2);
-
-    feature2Matrix(this->maxPooling1, this->maxPooling_matrix, this->conv2_wb);
-    convolution(this->conv2_wb, this->maxPooling1, this->conv2, this->maxPooling_matrix);
-    prelu(this->conv2, this->conv2_wb->pbias, this->prelu_gmma2->pdata);
-    //conv3 
-    feature2Matrix(this->conv2, this->conv3_matrix, this->conv3_wb);
-    convolution(this->conv3_wb, this->conv2, this->conv3, this->conv3_matrix);
-    prelu(this->conv3, this->conv3_wb->pbias, this->prelu_gmma3->pdata);
-    //conv4c1   score
-    feature2Matrix(this->conv3, this->score_matrix, this->conv4c1_wb);
-    convolution(this->conv4c1_wb, this->conv3, this->score_, this->score_matrix);
-    addbias(this->score_, this->conv4c1_wb->pbias);
-    softmax(this->score_);
-    // pBoxShow(this->score_);
-
-    //conv4c2   location
-    feature2Matrix(this->conv3, this->location_matrix, this->conv4c2_wb);
-    convolution(this->conv4c2_wb, this->conv3, this->location_, this->location_matrix);
-    addbias(this->location_, this->conv4c2_wb->pbias);
-    //softmax layer
-    generateBbox(this->score_, this->location_, scale);
-}
-void Pnet::generateBbox(const struct pBox *score, const struct pBox *location, mydataFmt scale){
-    //for pooling 
-    int stride = 2;
-    int cellsize = 12;
-    int count = 0;
-    //score p
-    mydataFmt *p = score->pdata + score->width*score->height;
-    mydataFmt *plocal = location->pdata;
-    struct Bbox bbox;
-    struct orderScore order;
-    for(int row=0;row<score->height;row++){
-        for(int col=0;col<score->width;col++){
-            if(*p>Pthreshold){
-                bbox.score = *p;
-                order.score = *p;
-                order.oriOrder = count;
-                bbox.x1 = round((stride*row+1)/scale);
-                bbox.y1 = round((stride*col+1)/scale);
-                bbox.x2 = round((stride*row+1+cellsize)/scale);
-                bbox.y2 = round((stride*col+1+cellsize)/scale);
-                bbox.exist = true;
-                bbox.area = (bbox.x2 - bbox.x1)*(bbox.y2 - bbox.y1);
-                for(int channel=0;channel<4;channel++)
-                    bbox.regreCoord[channel]=*(plocal+channel*location->width*location->height);
-                boundingBox_.push_back(bbox);
-                bboxScore_.push_back(order);
-                count++;
-            }
-            p++;
-            plocal++;
-        }
-    }
-}
+//#include "pnet_rt.h"
+//Pnet::Pnet(){
+//    Pthreshold = 0.6;
+//    nms_threshold = 0.5;
+//    firstFlag = true;
+//    this->rgb = new pBox;
+//
+//    this->conv1_matrix = new pBox;
+//    this->conv1 = new pBox;
+//    this->maxPooling1 = new pBox;
+//
+//    this->maxPooling_matrix = new pBox;
+//    this->conv2 = new pBox;
+//
+//    this->conv3_matrix = new pBox;
+//    this->conv3 = new pBox;
+//
+//    this->score_matrix = new pBox;
+//    this->score_ = new pBox;
+//
+//    this->location_matrix = new pBox;
+//    this->location_ = new pBox;
+//
+//    this->conv1_wb = new Weight;
+//    this->prelu_gmma1 = new pRelu;
+//    this->conv2_wb = new Weight;
+//    this->prelu_gmma2 = new pRelu;
+//    this->conv3_wb = new Weight;
+//    this->prelu_gmma3 = new pRelu;
+//    this->conv4c1_wb = new Weight;
+//    this->conv4c2_wb = new Weight;
+//    //                                 w       sc  lc ks s  p
+//    long conv1 = initConvAndFc(this->conv1_wb, 10, 3, 3, 1, 0);
+//    initpRelu(this->prelu_gmma1, 10);
+//    long conv2 = initConvAndFc(this->conv2_wb, 16, 10, 3, 1, 0);
+//    initpRelu(this->prelu_gmma2, 16);
+//    long conv3 = initConvAndFc(this->conv3_wb, 32, 16, 3, 1, 0);
+//    initpRelu(this->prelu_gmma3, 32);
+//    long conv4c1 = initConvAndFc(this->conv4c1_wb, 2, 32, 1, 1, 0);
+//    long conv4c2 = initConvAndFc(this->conv4c2_wb, 4, 32, 1, 1, 0);
+//    long dataNumber[13] = {conv1,10,10, conv2,16,16, conv3,32,32, conv4c1,2, conv4c2,4};
+//    mydataFmt *pointTeam[13] = {this->conv1_wb->pdata, this->conv1_wb->pbias, this->prelu_gmma1->pdata, \
+//                            this->conv2_wb->pdata, this->conv2_wb->pbias, this->prelu_gmma2->pdata, \
+//                            this->conv3_wb->pdata, this->conv3_wb->pbias, this->prelu_gmma3->pdata, \
+//                            this->conv4c1_wb->pdata, this->conv4c1_wb->pbias, \
+//                            this->conv4c2_wb->pdata, this->conv4c2_wb->pbias \
+//                            };
+//    string filename = "Pnet.txt";
+//    readData(filename, dataNumber, pointTeam);
+//}
+//Pnet::~Pnet(){
+//    freepBox(this->rgb);
+//    freepBox(this->conv1);
+//    freepBox(this->maxPooling1);
+//    freepBox(this->conv2);
+//    freepBox(this->conv3);
+//    freepBox(this->score_);
+//    freepBox(this->location_);
+//
+//    freepBox(this->conv1_matrix);
+//    freeWeight(this->conv1_wb);
+//    freepRelu(this->prelu_gmma1);
+//    freepBox(this->maxPooling_matrix);
+//    freeWeight(this->conv2_wb);
+//    freepBox(this->conv3_matrix);
+//    freepRelu(this->prelu_gmma2);
+//    freeWeight(this->conv3_wb);
+//    freepBox(this->score_matrix);
+//    freepRelu(this->prelu_gmma3);
+//    freeWeight(this->conv4c1_wb);
+//    freepBox(this->location_matrix);
+//    freeWeight(this->conv4c2_wb);
+//}
+//
+//void Pnet::run(Mat &image, float scale){
+//    if(firstFlag){
+//        image2MatrixInit(image, this->rgb);
+//
+//        feature2MatrixInit(this->rgb, this->conv1_matrix, this->conv1_wb);
+//        convolutionInit(this->conv1_wb, this->rgb, this->conv1, this->conv1_matrix);
+//
+//        maxPoolingInit(this->conv1, this->maxPooling1, 2, 2);
+//        feature2MatrixInit(this->maxPooling1, this->maxPooling_matrix, this->conv2_wb);
+//        convolutionInit(this->conv2_wb, this->maxPooling1, this->conv2, this->maxPooling_matrix);
+//
+//        feature2MatrixInit(this->conv2, this->conv3_matrix, this->conv3_wb);
+//        convolutionInit(this->conv3_wb, this->conv2, this->conv3, this->conv3_matrix);
+//
+//        feature2MatrixInit(this->conv3, this->score_matrix, this->conv4c1_wb);
+//        convolutionInit(this->conv4c1_wb, this->conv3, this->score_, this->score_matrix);
+//
+//        feature2MatrixInit(this->conv3, this->location_matrix, this->conv4c2_wb);
+//        convolutionInit(this->conv4c2_wb, this->conv3, this->location_, this->location_matrix);
+//        firstFlag = false;
+//    }
+//
+//    image2Matrix(image, this->rgb);
+//
+//    feature2Matrix(this->rgb, this->conv1_matrix, this->conv1_wb);
+//    convolution(this->conv1_wb, this->rgb, this->conv1, this->conv1_matrix);
+//    prelu(this->conv1, this->conv1_wb->pbias, this->prelu_gmma1->pdata);
+//    //Pooling layer
+//    maxPooling(this->conv1, this->maxPooling1, 2, 2);
+//
+//    feature2Matrix(this->maxPooling1, this->maxPooling_matrix, this->conv2_wb);
+//    convolution(this->conv2_wb, this->maxPooling1, this->conv2, this->maxPooling_matrix);
+//    prelu(this->conv2, this->conv2_wb->pbias, this->prelu_gmma2->pdata);
+//    //conv3
+//    feature2Matrix(this->conv2, this->conv3_matrix, this->conv3_wb);
+//    convolution(this->conv3_wb, this->conv2, this->conv3, this->conv3_matrix);
+//    prelu(this->conv3, this->conv3_wb->pbias, this->prelu_gmma3->pdata);
+//    //conv4c1   score
+//    feature2Matrix(this->conv3, this->score_matrix, this->conv4c1_wb);
+//    convolution(this->conv4c1_wb, this->conv3, this->score_, this->score_matrix);
+//    addbias(this->score_, this->conv4c1_wb->pbias);
+//    softmax(this->score_);
+//    // pBoxShow(this->score_);
+//
+//    //conv4c2   location
+//    feature2Matrix(this->conv3, this->location_matrix, this->conv4c2_wb);
+//    convolution(this->conv4c2_wb, this->conv3, this->location_, this->location_matrix);
+//    addbias(this->location_, this->conv4c2_wb->pbias);
+//    //softmax layer
+//    generateBbox(this->score_, this->location_, scale);
+//}
+//void Pnet::generateBbox(const struct pBox *score, const struct pBox *location, mydataFmt scale){
+//    //for pooling
+//    int stride = 2;
+//    int cellsize = 12;
+//    int count = 0;
+//    //score p
+//    mydataFmt *p = score->pdata + score->width*score->height;
+//    mydataFmt *plocal = location->pdata;
+//    struct Bbox bbox;
+//    struct orderScore order;
+//    for(int row=0;row<score->height;row++){
+//        for(int col=0;col<score->width;col++){
+//            if(*p>Pthreshold){
+//                bbox.score = *p;
+//                order.score = *p;
+//                order.oriOrder = count;
+//                bbox.x1 = round((stride*row+1)/scale);
+//                bbox.y1 = round((stride*col+1)/scale);
+//                bbox.x2 = round((stride*row+1+cellsize)/scale);
+//                bbox.y2 = round((stride*col+1+cellsize)/scale);
+//                bbox.exist = true;
+//                bbox.area = (bbox.x2 - bbox.x1)*(bbox.y2 - bbox.y1);
+//                for(int channel=0;channel<4;channel++)
+//                    bbox.regreCoord[channel]=*(plocal+channel*location->width*location->height);
+//                boundingBox_.push_back(bbox);
+//                bboxScore_.push_back(order);
+//                count++;
+//            }
+//            p++;
+//            plocal++;
+//        }
+//    }
+//}
 
 Rnet::Rnet(){
     Rthreshold = 0.7;
@@ -502,6 +502,7 @@ mtcnn::mtcnn(int row, int col){
         count++;
     }
     simpleFace_ = new Pnet[scales_.size()];
+
 }
 
 mtcnn::~mtcnn(){

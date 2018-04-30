@@ -4,12 +4,12 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/home/zhou/CLionProjects/MTCNN_TensorRT/src/common.cpp" "/home/zhou/CLionProjects/MTCNN_TensorRT/cmake-build-debug/CMakeFiles/main.dir/src/common.cpp.o"
-  "/home/zhou/CLionProjects/MTCNN_TensorRT/src/mtcnn.cpp" "/home/zhou/CLionProjects/MTCNN_TensorRT/cmake-build-debug/CMakeFiles/main.dir/src/mtcnn.cpp.o"
-  "/home/zhou/CLionProjects/MTCNN_TensorRT/src/network.cpp" "/home/zhou/CLionProjects/MTCNN_TensorRT/cmake-build-debug/CMakeFiles/main.dir/src/network.cpp.o"
-  "/home/zhou/CLionProjects/MTCNN_TensorRT/src/pBox.cpp" "/home/zhou/CLionProjects/MTCNN_TensorRT/cmake-build-debug/CMakeFiles/main.dir/src/pBox.cpp.o"
-  "/home/zhou/CLionProjects/MTCNN_TensorRT/src/pikaqiu.cpp" "/home/zhou/CLionProjects/MTCNN_TensorRT/cmake-build-debug/CMakeFiles/main.dir/src/pikaqiu.cpp.o"
-  "/home/zhou/CLionProjects/MTCNN_TensorRT/src/pnet_rt.cpp" "/home/zhou/CLionProjects/MTCNN_TensorRT/cmake-build-debug/CMakeFiles/main.dir/src/pnet_rt.cpp.o"
+  "/home/zhou/MTCNN_TensorRT/src/common.cpp" "/home/zhou/MTCNN_TensorRT/cmake-build-debug/CMakeFiles/main.dir/src/common.cpp.o"
+  "/home/zhou/MTCNN_TensorRT/src/mtcnn.cpp" "/home/zhou/MTCNN_TensorRT/cmake-build-debug/CMakeFiles/main.dir/src/mtcnn.cpp.o"
+  "/home/zhou/MTCNN_TensorRT/src/network.cpp" "/home/zhou/MTCNN_TensorRT/cmake-build-debug/CMakeFiles/main.dir/src/network.cpp.o"
+  "/home/zhou/MTCNN_TensorRT/src/pBox.cpp" "/home/zhou/MTCNN_TensorRT/cmake-build-debug/CMakeFiles/main.dir/src/pBox.cpp.o"
+  "/home/zhou/MTCNN_TensorRT/src/pikaqiu.cpp" "/home/zhou/MTCNN_TensorRT/cmake-build-debug/CMakeFiles/main.dir/src/pikaqiu.cpp.o"
+  "/home/zhou/MTCNN_TensorRT/src/pnet_rt.cpp" "/home/zhou/MTCNN_TensorRT/cmake-build-debug/CMakeFiles/main.dir/src/pnet_rt.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 

@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 project(main)
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
+add_definitions(-std=c++11)
 #set(QMAKE_CXXFLAGS "-std=c++11")
 include_directories(/opt/OpenBLAS/include)
 include_directories(/usr/local/cuda/include)
@@ -13,5 +14,13 @@ find_package( OpenCV REQUIRED)
 
 AUX_SOURCE_DIRECTORY(./src DIR_SRCS)
 add_executable( main ${DIR_SRCS} src/pnet_rt.cpp src/common.h src/common.cpp src/pnet_rt.h)
+
+set(CMAKE_CXX_FLAGS  "-lpthread")
+
 target_link_libraries( main ${OpenCV_LIBS} )
 target_link_libraries( main openblas)
+target_link_libraries( main cudart)
+target_link_libraries( main nvinfer)
+target_link_libraries( main nvparsers)
+
+

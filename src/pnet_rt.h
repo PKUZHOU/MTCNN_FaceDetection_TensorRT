@@ -6,7 +6,6 @@
 #define MAIN_PNET_RT_H
 
 #include "network.h"
-#include <mtcnn.h>
 #include <assert.h>
 #include <fstream>
 #include <sstream>
@@ -61,6 +60,10 @@ private:
     IRuntime* runtime;
     ICudaEngine *engine ;
     IExecutionContext *context;
+
+    struct pBox *location_;
+    struct pBox *score_;
+
 
     void generateBbox(const struct pBox *score, const struct pBox *location, mydataFmt scale);
 };

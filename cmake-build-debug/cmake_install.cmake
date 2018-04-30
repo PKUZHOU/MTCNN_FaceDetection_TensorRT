@@ -1,4 +1,4 @@
-# Install script for directory: /home/zhou/CLionProjects/MTCNN_TensorRT
+# Install script for directory: /home/zhou/MTCNN_TensorRT
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -45,5 +45,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/zhou/CLionProjects/MTCNN_TensorRT/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/zhou/MTCNN_TensorRT/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
