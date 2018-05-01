@@ -22,31 +22,49 @@
 #endif //MAIN_PNET_RT_H
 using namespace nvinfer1;
 using namespace nvcaffeparser1;
+
+class Pnet_engine
+{
+private:
+
+    const string prototxt;
+    const string model   ;
+    const char *INPUT_BLOB_NAME;
+    const char *OUTPUT_PROB_NAME;
+    const char *OUTPUT_LOCATION_NAME;
+    ICudaEngine *engine ;
+    IExecutionContext *context;
+    IRuntime* runtime;
+
+    void caffeToGIEModel(const std::string& deployFile,				// name for caffe prototxt
+                         const std::string& modelFile,				// name for model
+                         const std::vector<std::string>& outputs,   // network outputs
+                         unsigned int maxBatchSize,					// batch size - NB must be at least as large as the batch we want to run with)
+                         IHostMemory *&gieModelStream);    // output buffer for the GIE model
+    IHostMemory *gieModelStream{nullptr};
+
+public:
+    Pnet_engine();
+//    ~Pnet_engine();
+    friend class Pnet;
+
+};
+
+
+
 class Pnet
 {
 public:
     Pnet();
     ~Pnet();
 
-    void run(Mat &image, float scale);
-    void caffeToGIEModel(const std::string& deployFile,				// name for caffe prototxt
-                          const std::string& modelFile,				// name for model
-                          const std::vector<std::string>& outputs,   // network outputs
-                          unsigned int maxBatchSize,					// batch size - NB must be at least as large as the batch we want to run with)
-                          IHostMemory *&gieModelStream);    // output buffer for the GIE model
+    void run(Mat &image, float scale,Pnet_engine& engine);
     float nms_threshold;
     mydataFmt Pthreshold;
     bool firstFlag;
     vector<struct Bbox> boundingBox_;
     vector<orderScore> bboxScore_;
 private:
-
-    IHostMemory *gieModelStream{nullptr};
-    const string prototxt;
-    const string model   ;
-    const char *INPUT_BLOB_NAME;
-    const char *OUTPUT_PROB_NAME;
-    const char *OUTPUT_LOCATION_NAME;
 
     const int BatchSize ;
     const int INPUT_C ;
@@ -57,13 +75,10 @@ private:
     int OUT_PROB_SIZE;
     int OUT_LOCATION_SIZE;
 
-    IRuntime* runtime;
-    ICudaEngine *engine ;
-    IExecutionContext *context;
 
     struct pBox *location_;
     struct pBox *score_;
 
-
     void generateBbox(const struct pBox *score, const struct pBox *location, mydataFmt scale);
 };
+

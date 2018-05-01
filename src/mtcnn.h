@@ -143,6 +143,7 @@ private:
     Mat reImage;
     float nms_threshold[3];
     vector<float> scales_;
+    Pnet_engine *pnet_engine;
     Pnet *simpleFace_;
     vector<struct Bbox> firstBbox_;
     vector<struct orderScore> firstOrderScore_;

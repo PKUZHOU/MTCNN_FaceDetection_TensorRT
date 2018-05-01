@@ -501,6 +501,7 @@ mtcnn::mtcnn(int row, int col){
         }
         count++;
     }
+    pnet_engine = new Pnet_engine;
     simpleFace_ = new Pnet[scales_.size()];
 
 }
@@ -516,7 +517,7 @@ void mtcnn::findFace(Mat &image){
         int changedH = (int)ceil(image.rows*scales_.at(i));
         int changedW = (int)ceil(image.cols*scales_.at(i));
         resize(image, reImage, Size(changedW, changedH), 0, 0, cv::INTER_LINEAR);
-        simpleFace_[i].run(reImage, scales_.at(i));
+        simpleFace_[i].run(reImage, scales_.at(i),*pnet_engine);
         nms(simpleFace_[i].boundingBox_, simpleFace_[i].bboxScore_, simpleFace_[i].nms_threshold);
 
         for(vector<struct Bbox>::iterator it=simpleFace_[i].boundingBox_.begin(); it!=simpleFace_[i].boundingBox_.end();it++){
