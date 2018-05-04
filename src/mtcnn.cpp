@@ -521,6 +521,8 @@ mtcnn::~mtcnn(){
 void mtcnn::findFace(Mat &image){
     struct orderScore order;
     int count = 0;
+
+    clock_t first_time = clock();
     for (size_t i = 0; i < scales_.size(); i++) {
         int changedH = (int)ceil(image.rows*scales_.at(i));
         int changedW = (int)ceil(image.cols*scales_.at(i));
@@ -545,67 +547,76 @@ void mtcnn::findFace(Mat &image){
     nms(firstBbox_, firstOrderScore_, nms_threshold[0]);
     refineAndSquareBbox(firstBbox_, image.rows, image.cols);
 
-//    //second stage
-//    count = 0;
-//    for(vector<struct Bbox>::iterator it=firstBbox_.begin(); it!=firstBbox_.end();it++){
-//        if((*it).exist){
-//            Rect temp((*it).y1, (*it).x1, (*it).y2-(*it).y1, (*it).x2-(*it).x1);
-//            Mat secImage;
-//            resize(image(temp), secImage, Size(24, 24), 0, 0, cv::INTER_LINEAR);
-//            refineNet.run(secImage);
-//            if(*(refineNet.score_->pdata+1)>refineNet.Rthreshold){
-//                memcpy(it->regreCoord, refineNet.location_->pdata, 4*sizeof(mydataFmt));
-//                it->area = (it->x2 - it->x1)*(it->y2 - it->y1);
-//                it->score = *(refineNet.score_->pdata+1);
-//                secondBbox_.push_back(*it);
-//                order.score = it->score;
-//                order.oriOrder = count++;
-//                secondBboxScore_.push_back(order);
-//            }
-//            else{
-//                (*it).exist=false;
-//            }
-//        }
-//    }
-//    if(count<1)return;
-//    nms(secondBbox_, secondBboxScore_, nms_threshold[1]);
-//    refineAndSquareBbox(secondBbox_, image.rows, image.cols);
-//
-//    //third stage
-//    count = 0;
-//    for(vector<struct Bbox>::iterator it=secondBbox_.begin(); it!=secondBbox_.end();it++){
-//        if((*it).exist){
-//            Rect temp((*it).y1, (*it).x1, (*it).y2-(*it).y1, (*it).x2-(*it).x1);
-//            Mat thirdImage;
-//            resize(image(temp), thirdImage, Size(48, 48), 0, 0, cv::INTER_LINEAR);
-//            outNet.run(thirdImage);
-//            mydataFmt *pp=NULL;
-//            if(*(outNet.score_->pdata+1)>outNet.Othreshold){
-//                memcpy(it->regreCoord, outNet.location_->pdata, 4*sizeof(mydataFmt));
-//                it->area = (it->x2 - it->x1)*(it->y2 - it->y1);
-//                it->score = *(outNet.score_->pdata+1);
-//                pp = outNet.keyPoint_->pdata;
-//                for(int num=0;num<5;num++){
-//                    (it->ppoint)[num] = it->y1 + (it->y2 - it->y1)*(*(pp+num));
-//                }
-//                for(int num=0;num<5;num++){
-//                    (it->ppoint)[num+5] = it->x1 + (it->x2 - it->x1)*(*(pp+num+5));
-//                }
-//                thirdBbox_.push_back(*it);
-//                order.score = it->score;
-//                order.oriOrder = count++;
-//                thirdBboxScore_.push_back(order);
-//            }
-//            else{
-//                it->exist=false;
-//            }
-//        }
-//    }
+    first_time = clock() - first_time;
 
-//    if(count<1)return;
-//    refineAndSquareBbox(thirdBbox_, image.rows, image.cols);
-//    nms(thirdBbox_, thirdBboxScore_, nms_threshold[2], "Min");
+    cout<<"first time is  "<<1000*(double)first_time/CLOCKS_PER_SEC<<endl;
+    //second stage
+    count = 0;
+    clock_t second_time = clock();
     for(vector<struct Bbox>::iterator it=firstBbox_.begin(); it!=firstBbox_.end();it++){
+        if((*it).exist){
+            Rect temp((*it).y1, (*it).x1, (*it).y2-(*it).y1, (*it).x2-(*it).x1);
+            Mat secImage;
+            resize(image(temp), secImage, Size(24, 24), 0, 0, cv::INTER_LINEAR);
+            refineNet.run(secImage);
+            if(*(refineNet.score_->pdata+1)>refineNet.Rthreshold){
+                memcpy(it->regreCoord, refineNet.location_->pdata, 4*sizeof(mydataFmt));
+                it->area = (it->x2 - it->x1)*(it->y2 - it->y1);
+                it->score = *(refineNet.score_->pdata+1);
+                secondBbox_.push_back(*it);
+                order.score = it->score;
+                order.oriOrder = count++;
+                secondBboxScore_.push_back(order);
+            }
+            else{
+                (*it).exist=false;
+            }
+        }
+    }
+    if(count<1)return;
+    nms(secondBbox_, secondBboxScore_, nms_threshold[1]);
+    refineAndSquareBbox(secondBbox_, image.rows, image.cols);
+    second_time = clock() - second_time;
+    cout<<"second time is  "<<1000*(double)second_time/CLOCKS_PER_SEC<<endl;
+    //third stage
+    count = 0;
+    clock_t third_time = clock();
+    for(vector<struct Bbox>::iterator it=secondBbox_.begin(); it!=secondBbox_.end();it++){
+        if((*it).exist){
+            Rect temp((*it).y1, (*it).x1, (*it).y2-(*it).y1, (*it).x2-(*it).x1);
+            Mat thirdImage;
+            resize(image(temp), thirdImage, Size(48, 48), 0, 0, cv::INTER_LINEAR);
+            outNet.run(thirdImage);
+            mydataFmt *pp=NULL;
+            if(*(outNet.score_->pdata+1)>outNet.Othreshold){
+                memcpy(it->regreCoord, outNet.location_->pdata, 4*sizeof(mydataFmt));
+                it->area = (it->x2 - it->x1)*(it->y2 - it->y1);
+                it->score = *(outNet.score_->pdata+1);
+                pp = outNet.keyPoint_->pdata;
+                for(int num=0;num<5;num++){
+                    (it->ppoint)[num] = it->y1 + (it->y2 - it->y1)*(*(pp+num));
+                }
+                for(int num=0;num<5;num++){
+                    (it->ppoint)[num+5] = it->x1 + (it->x2 - it->x1)*(*(pp+num+5));
+                }
+                thirdBbox_.push_back(*it);
+                order.score = it->score;
+                order.oriOrder = count++;
+                thirdBboxScore_.push_back(order);
+            }
+            else{
+                it->exist=false;
+            }
+        }
+    }
+
+    if(count<1)return;
+    refineAndSquareBbox(thirdBbox_, image.rows, image.cols);
+    nms(thirdBbox_, thirdBboxScore_, nms_threshold[2], "Min");
+
+    third_time = clock() - third_time;
+    cout<<"third time is  "<<1000*(double)third_time/CLOCKS_PER_SEC<<endl;
+    for(vector<struct Bbox>::iterator it=thirdBbox_.begin(); it!=thirdBbox_.end();it++){
         if((*it).exist){
             rectangle(image, Point((*it).y1, (*it).x1), Point((*it).y2, (*it).x2), Scalar(0,0,255), 2,8,0);
             for(int num=0;num<5;num++)circle(image,Point((int)*(it->ppoint+num), (int)*(it->ppoint+num+5)),3,Scalar(0,255,255), -1);

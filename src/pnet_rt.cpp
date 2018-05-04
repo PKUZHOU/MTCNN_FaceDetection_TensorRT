@@ -82,7 +82,7 @@ void Pnet_engine::caffeToGIEModel(const std::string &deployFile,                
 }
 Pnet::Pnet(int row,int col,const  Pnet_engine&pnet_engine) : BatchSize(1),
                INPUT_C(3),Engine(pnet_engine.context->getEngine()) {
-    Pthreshold = 0.6;
+    Pthreshold = 0.9;
     nms_threshold = 0.5;
     this->score_ = new pBox;
     this->location_ = new pBox;
