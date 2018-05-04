@@ -1,44 +1,48 @@
 //
 // Created by zhou on 18-4-30.
 //
+#
+
+
 #include "pnet_rt.h"
+
 #include <fstream>
+
 // stuff we know about the network and the caffe input/output blobs
-Pnet_engine::Pnet_engine() : prototxt("12net.prototxt"),
-                             model("12net.caffemodel"),
-                             INPUT_BLOB_NAME("data"),
-                             OUTPUT_LOCATION_NAME("conv4-2"),
-                             OUTPUT_PROB_NAME("prob1") {
+Pnet_engine::Pnet_engine() : baseEngine("12net.prototxt",
+                                        "12net.caffemodel",
+                                        "data",
+                                        "conv4-2",
+                                        "prob1") {
 };
+
 Pnet_engine::~Pnet_engine() {
     shutdownProtobufLibrary();
 }
 
-void Pnet_engine::init(int row,int col) {
+void Pnet_engine::init(int row, int col) {
 
     //modifiy the input shape of prototxt, write to temp.prototxt
     int first_spce = 16, second_space = 4;
     fstream protofile;
-    protofile.open(prototxt,ios::in);
+    protofile.open(prototxt, ios::in);
     std::stringstream buffer;
-    buffer<<protofile.rdbuf();
+    buffer << protofile.rdbuf();
     std::string contents(buffer.str());
-    string::size_type position_h,position_w;
+    string::size_type position_h, position_w;
     position_h = contents.find("dim");
-    while(isdigit(contents[position_h+first_spce]))
-    {
-        contents.erase(position_h+first_spce,1);
+    while (isdigit(contents[position_h + first_spce])) {
+        contents.erase(position_h + first_spce, 1);
     }
-    contents.insert(position_h+first_spce,to_string(row));
-    position_w = contents.find("dim",position_h+first_spce);
-    while(isdigit(contents[position_w+second_space]))
-    {
-        contents.erase(position_w+second_space,1);
+    contents.insert(position_h + first_spce, to_string(row));
+    position_w = contents.find("dim", position_h + first_spce);
+    while (isdigit(contents[position_w + second_space])) {
+        contents.erase(position_w + second_space, 1);
     }
-    contents.insert(position_w+second_space,to_string(col));
+    contents.insert(position_w + second_space, to_string(col));
     protofile.close();
-    protofile.open("temp.prototxt",ios::out);
-    protofile.write(contents.c_str(),contents.size());
+    protofile.open("temp.prototxt", ios::out);
+    protofile.write(contents.c_str(), contents.size());
     protofile.close();
     IHostMemory *gieModelStream{nullptr};
     //generate Tensorrt model
@@ -46,47 +50,15 @@ void Pnet_engine::init(int row,int col) {
                     gieModelStream);
 
 }
-void Pnet_engine::caffeToGIEModel(const std::string &deployFile,                // name for caffe prototxt
-                                  const std::string &modelFile,                // name for model
-                                  const std::vector<std::string> &outputs,   // network outputs
-                                  unsigned int maxBatchSize,                    // batch size - NB must be at least as large as the batch we want to run with)
-                                  IHostMemory *&gieModelStream)    // output buffer for the GIE model
-{
-    // create the builder
-    IBuilder *builder = createInferBuilder(gLogger);
 
-    // parse the caffe model to populate the network, then set the outputs
-    INetworkDefinition *network = builder->createNetwork();
-    ICaffeParser *parser = createCaffeParser();
 
-    const IBlobNameToTensor *blobNameToTensor = parser->parse(deployFile.c_str(),
-                                                              modelFile.c_str(),
-                                                              *network,
-                                                              nvinfer1::DataType::kFLOAT);
-    // specify which tensors are outputs
-    for (auto &s : outputs)
-        network->markOutput(*blobNameToTensor->find(s.c_str()));
-
-    // Build the engine
-    builder->setMaxBatchSize(maxBatchSize);
-    builder->setMaxWorkspaceSize(5 << 20);
-    ICudaEngine*engine = builder->buildCudaEngine(*network);
-    assert(engine);
-    context = engine->createExecutionContext();
-
-    // we don't need the network any more, and we can destroy the parser
-    network->destroy();
-    parser->destroy();
-    builder->destroy();
-
-}
-Pnet::Pnet(int row,int col,const  Pnet_engine&pnet_engine) : BatchSize(1),
-               INPUT_C(3),Engine(pnet_engine.context->getEngine()) {
+Pnet::Pnet(int row, int col, const Pnet_engine &pnet_engine) : BatchSize(1),
+                                                               INPUT_C(3), Engine(pnet_engine.context->getEngine()) {
     Pthreshold = 0.9;
     nms_threshold = 0.5;
     this->score_ = new pBox;
     this->location_ = new pBox;
-    this->rgb  = new pBox;
+    this->rgb = new pBox;
     INPUT_W = col;
     INPUT_H = row;
     //calculate output shape
@@ -101,7 +73,7 @@ Pnet::Pnet(int row,int col,const  Pnet_engine&pnet_engine) : BatchSize(1),
     OUT_PROB_SIZE = this->score_->width * this->score_->height * this->score_->channel;
     OUT_LOCATION_SIZE = this->location_->width * this->location_->height * this->location_->channel;
     //allocate memory for outputs
-    this->rgb->pdata = (float*) malloc(INPUT_C*INPUT_H*INPUT_W*sizeof(float));
+    this->rgb->pdata = (float *) malloc(INPUT_C * INPUT_H * INPUT_W * sizeof(float));
     this->score_->pdata = (float *) malloc(OUT_PROB_SIZE * sizeof(float));
     this->location_->pdata = (float *) malloc(OUT_LOCATION_SIZE * sizeof(float));
 
@@ -132,9 +104,13 @@ void Pnet::run(Mat &image, float scale, const Pnet_engine &pnet_engine) {
 
 
     //DMA the input to the GPU ,execute the batch asynchronously and DMA it back;
-
+    clock_t in2matix = clock();
     image2Matrix(image, this->rgb);
-    CHECK(cudaMemcpyAsync(buffers[inputIndex], this->rgb->pdata, BatchSize * INPUT_C * INPUT_H * INPUT_W * sizeof(float),
+    cout<<"first convert: "<<(clock() - in2matix)/1000.<<endl;
+    clock_t first_pure = clock();
+
+    CHECK(cudaMemcpyAsync(buffers[inputIndex], this->rgb->pdata,
+                          BatchSize * INPUT_C * INPUT_H * INPUT_W * sizeof(float),
                           cudaMemcpyHostToDevice, stream));
     pnet_engine.context->enqueue(BatchSize, buffers, stream, nullptr);
     CHECK(cudaMemcpyAsync(this->score_->pdata, buffers[outputProb], BatchSize * OUT_PROB_SIZE * sizeof(float),
@@ -142,8 +118,14 @@ void Pnet::run(Mat &image, float scale, const Pnet_engine &pnet_engine) {
     CHECK(cudaMemcpyAsync(this->location_->pdata, buffers[outputLocation],
                           BatchSize * OUT_LOCATION_SIZE * sizeof(float), cudaMemcpyDeviceToHost, stream));
     cudaStreamSynchronize(stream);
-    generateBbox(this->score_, this->location_, scale);
 
+    first_pure = clock() - first_pure;
+    cout<<"first pure: "<<first_pure/1000.<<endl;
+
+    clock_t first_gen = clock();
+
+    generateBbox(this->score_, this->location_, scale);
+    cout<<"first gen: "<<(clock() - first_gen)/1000.<<endl;
 }
 
 void Pnet::generateBbox(const struct pBox *score, const struct pBox *location, mydataFmt scale) {

@@ -158,139 +158,139 @@
 //    }
 //}
 
-Rnet::Rnet(){
-    Rthreshold = 0.7;
-
-    this->rgb = new pBox;
-    this->conv1_matrix = new pBox;
-    this->conv1_out = new pBox;
-    this->pooling1_out = new pBox;
-
-    this->conv2_matrix = new pBox;
-    this->conv2_out = new pBox;
-    this->pooling2_out = new pBox;
-
-    this->conv3_matrix = new pBox;
-    this->conv3_out = new pBox;
-
-    this->fc4_out = new pBox;
-
-    this->score_ = new pBox;
-    this->location_ = new pBox;
-
-    this->conv1_wb = new Weight;
-    this->prelu_gmma1 = new pRelu;
-    this->conv2_wb = new Weight;
-    this->prelu_gmma2 = new pRelu;
-    this->conv3_wb = new Weight;
-    this->prelu_gmma3 = new pRelu;
-    this->fc4_wb = new Weight;
-    this->prelu_gmma4 = new pRelu;
-    this->score_wb = new Weight;
-    this->location_wb = new Weight;
-    // //                             w         sc  lc ks s  p
-    long conv1 = initConvAndFc(this->conv1_wb, 28, 3, 3, 1, 0);
-    initpRelu(this->prelu_gmma1, 28);
-    long conv2 = initConvAndFc(this->conv2_wb, 48, 28, 3, 1, 0);
-    initpRelu(this->prelu_gmma2, 48);
-    long conv3 = initConvAndFc(this->conv3_wb, 64, 48, 2, 1, 0);
-    initpRelu(this->prelu_gmma3, 64);
-    long fc4 = initConvAndFc(this->fc4_wb, 128, 576, 1, 1, 0);
-    initpRelu(this->prelu_gmma4, 128);
-    long score = initConvAndFc(this->score_wb, 2, 128, 1, 1, 0);
-    long location = initConvAndFc(this->location_wb, 4, 128, 1, 1, 0);
-    long dataNumber[16] = {conv1,28,28, conv2,48,48, conv3,64,64, fc4,128,128, score,2, location,4};
-    mydataFmt *pointTeam[16] = {this->conv1_wb->pdata, this->conv1_wb->pbias, this->prelu_gmma1->pdata, \
-                                this->conv2_wb->pdata, this->conv2_wb->pbias, this->prelu_gmma2->pdata, \
-                                this->conv3_wb->pdata, this->conv3_wb->pbias, this->prelu_gmma3->pdata, \
-                                this->fc4_wb->pdata, this->fc4_wb->pbias, this->prelu_gmma4->pdata, \
-                                this->score_wb->pdata, this->score_wb->pbias, \
-                                this->location_wb->pdata, this->location_wb->pbias \
-                                };
-    string filename = "Rnet.txt";
-    readData(filename, dataNumber, pointTeam);
-
-    //Init the network
-    RnetImage2MatrixInit(rgb);
-    feature2MatrixInit(this->rgb, this->conv1_matrix, this->conv1_wb);
-    convolutionInit(this->conv1_wb, this->rgb, this->conv1_out, this->conv1_matrix);
-    maxPoolingInit(this->conv1_out, this->pooling1_out, 3, 2);
-    feature2MatrixInit(this->pooling1_out, this->conv2_matrix, this->conv2_wb);
-    convolutionInit(this->conv2_wb, this->pooling1_out, this->conv2_out, this->conv2_matrix);
-    maxPoolingInit(this->conv2_out, this->pooling2_out, 3, 2);
-    feature2MatrixInit(this->pooling2_out, this->conv3_matrix, this->conv3_wb);
-    convolutionInit(this->conv3_wb, this->pooling2_out, this->conv3_out, this->conv3_matrix);
-    fullconnectInit(this->fc4_wb, this->fc4_out);
-    fullconnectInit(this->score_wb, this->score_);
-    fullconnectInit(this->location_wb, this->location_);
-}
-Rnet::~Rnet(){
-    freepBox(this->rgb);
-    freepBox(this->conv1_matrix);
-    freepBox(this->conv1_out);
-    freepBox(this->pooling1_out);
-    freepBox(this->conv2_matrix);
-    freepBox(this->conv2_out);
-    freepBox(this->pooling2_out);
-    freepBox(this->conv3_matrix);
-    freepBox(this->conv3_out);
-    freepBox(this->fc4_out);
-    freepBox(this->score_);
-    freepBox(this->location_);
-
-    freeWeight(this->conv1_wb);
-    freepRelu(this->prelu_gmma1);
-    freeWeight(this->conv2_wb);
-    freepRelu(this->prelu_gmma2);
-    freeWeight(this->conv3_wb);
-    freepRelu(this->prelu_gmma3);
-    freeWeight(this->fc4_wb);
-    freepRelu(this->prelu_gmma4);
-    freeWeight(this->score_wb);
-    freeWeight(this->location_wb);
-}
-void Rnet::RnetImage2MatrixInit(struct pBox *pbox){
-    pbox->channel = 3;
-    pbox->height = 24;
-    pbox->width = 24;
-    
-    pbox->pdata = (mydataFmt *)malloc(pbox->channel*pbox->height*pbox->width*sizeof(mydataFmt));
-    if(pbox->pdata==NULL)cout<<"the image2MatrixInit is failed!!"<<endl;
-    memset(pbox->pdata, 0, pbox->channel*pbox->height*pbox->width*sizeof(mydataFmt));
-}
-void Rnet::run(Mat &image){
-    image2Matrix(image, this->rgb);
-
-    feature2Matrix(this->rgb, this->conv1_matrix, this->conv1_wb);
-    convolution(this->conv1_wb, this->rgb, this->conv1_out, this->conv1_matrix);
-    prelu(this->conv1_out, this->conv1_wb->pbias, this->prelu_gmma1->pdata);
-
-    maxPooling(this->conv1_out, this->pooling1_out, 3, 2);
-
-    feature2Matrix(this->pooling1_out, this->conv2_matrix, this->conv2_wb);
-    convolution(this->conv2_wb, this->pooling1_out, this->conv2_out, this->conv2_matrix);
-    prelu(this->conv2_out, this->conv2_wb->pbias, this->prelu_gmma2->pdata);
-    maxPooling(this->conv2_out, this->pooling2_out, 3, 2);
-
-    //conv3 
-    feature2Matrix(this->pooling2_out, this->conv3_matrix, this->conv3_wb);
-    convolution(this->conv3_wb, this->pooling2_out, this->conv3_out, this->conv3_matrix);
-    prelu(this->conv3_out, this->conv3_wb->pbias, this->prelu_gmma3->pdata);
-
-    //flatten
-    fullconnect(this->fc4_wb, this->conv3_out, this->fc4_out);
-    prelu(this->fc4_out, this->fc4_wb->pbias, this->prelu_gmma4->pdata);
-
-    //conv51   score
-    fullconnect(this->score_wb, this->fc4_out, this->score_);
-    addbias(this->score_, this->score_wb->pbias);
-    softmax(this->score_);
-
-    //conv5_2   location
-    fullconnect(this->location_wb, this->fc4_out, this->location_);
-    addbias(this->location_, this->location_wb->pbias);
-    // pBoxShow(location_);
-}
+//Rnet::Rnet(){
+//    Rthreshold = 0.7;
+//
+//    this->rgb = new pBox;
+//    this->conv1_matrix = new pBox;
+//    this->conv1_out = new pBox;
+//    this->pooling1_out = new pBox;
+//
+//    this->conv2_matrix = new pBox;
+//    this->conv2_out = new pBox;
+//    this->pooling2_out = new pBox;
+//
+//    this->conv3_matrix = new pBox;
+//    this->conv3_out = new pBox;
+//
+//    this->fc4_out = new pBox;
+//
+//    this->score_ = new pBox;
+//    this->location_ = new pBox;
+//
+//    this->conv1_wb = new Weight;
+//    this->prelu_gmma1 = new pRelu;
+//    this->conv2_wb = new Weight;
+//    this->prelu_gmma2 = new pRelu;
+//    this->conv3_wb = new Weight;
+//    this->prelu_gmma3 = new pRelu;
+//    this->fc4_wb = new Weight;
+//    this->prelu_gmma4 = new pRelu;
+//    this->score_wb = new Weight;
+//    this->location_wb = new Weight;
+//    // //                             w         sc  lc ks s  p
+//    long conv1 = initConvAndFc(this->conv1_wb, 28, 3, 3, 1, 0);
+//    initpRelu(this->prelu_gmma1, 28);
+//    long conv2 = initConvAndFc(this->conv2_wb, 48, 28, 3, 1, 0);
+//    initpRelu(this->prelu_gmma2, 48);
+//    long conv3 = initConvAndFc(this->conv3_wb, 64, 48, 2, 1, 0);
+//    initpRelu(this->prelu_gmma3, 64);
+//    long fc4 = initConvAndFc(this->fc4_wb, 128, 576, 1, 1, 0);
+//    initpRelu(this->prelu_gmma4, 128);
+//    long score = initConvAndFc(this->score_wb, 2, 128, 1, 1, 0);
+//    long location = initConvAndFc(this->location_wb, 4, 128, 1, 1, 0);
+//    long dataNumber[16] = {conv1,28,28, conv2,48,48, conv3,64,64, fc4,128,128, score,2, location,4};
+//    mydataFmt *pointTeam[16] = {this->conv1_wb->pdata, this->conv1_wb->pbias, this->prelu_gmma1->pdata, \
+//                                this->conv2_wb->pdata, this->conv2_wb->pbias, this->prelu_gmma2->pdata, \
+//                                this->conv3_wb->pdata, this->conv3_wb->pbias, this->prelu_gmma3->pdata, \
+//                                this->fc4_wb->pdata, this->fc4_wb->pbias, this->prelu_gmma4->pdata, \
+//                                this->score_wb->pdata, this->score_wb->pbias, \
+//                                this->location_wb->pdata, this->location_wb->pbias \
+//                                };
+//    string filename = "Rnet.txt";
+//    readData(filename, dataNumber, pointTeam);
+//
+//    //Init the network
+//    RnetImage2MatrixInit(rgb);
+//    feature2MatrixInit(this->rgb, this->conv1_matrix, this->conv1_wb);
+//    convolutionInit(this->conv1_wb, this->rgb, this->conv1_out, this->conv1_matrix);
+//    maxPoolingInit(this->conv1_out, this->pooling1_out, 3, 2);
+//    feature2MatrixInit(this->pooling1_out, this->conv2_matrix, this->conv2_wb);
+//    convolutionInit(this->conv2_wb, this->pooling1_out, this->conv2_out, this->conv2_matrix);
+//    maxPoolingInit(this->conv2_out, this->pooling2_out, 3, 2);
+//    feature2MatrixInit(this->pooling2_out, this->conv3_matrix, this->conv3_wb);
+//    convolutionInit(this->conv3_wb, this->pooling2_out, this->conv3_out, this->conv3_matrix);
+//    fullconnectInit(this->fc4_wb, this->fc4_out);
+//    fullconnectInit(this->score_wb, this->score_);
+//    fullconnectInit(this->location_wb, this->location_);
+//}
+//Rnet::~Rnet(){
+//    freepBox(this->rgb);
+//    freepBox(this->conv1_matrix);
+//    freepBox(this->conv1_out);
+//    freepBox(this->pooling1_out);
+//    freepBox(this->conv2_matrix);
+//    freepBox(this->conv2_out);
+//    freepBox(this->pooling2_out);
+//    freepBox(this->conv3_matrix);
+//    freepBox(this->conv3_out);
+//    freepBox(this->fc4_out);
+//    freepBox(this->score_);
+//    freepBox(this->location_);
+//
+//    freeWeight(this->conv1_wb);
+//    freepRelu(this->prelu_gmma1);
+//    freeWeight(this->conv2_wb);
+//    freepRelu(this->prelu_gmma2);
+//    freeWeight(this->conv3_wb);
+//    freepRelu(this->prelu_gmma3);
+//    freeWeight(this->fc4_wb);
+//    freepRelu(this->prelu_gmma4);
+//    freeWeight(this->score_wb);
+//    freeWeight(this->location_wb);
+//}
+//void Rnet::RnetImage2MatrixInit(struct pBox *pbox){
+//    pbox->channel = 3;
+//    pbox->height = 24;
+//    pbox->width = 24;
+//
+//    pbox->pdata = (mydataFmt *)malloc(pbox->channel*pbox->height*pbox->width*sizeof(mydataFmt));
+//    if(pbox->pdata==NULL)cout<<"the image2MatrixInit is failed!!"<<endl;
+//    memset(pbox->pdata, 0, pbox->channel*pbox->height*pbox->width*sizeof(mydataFmt));
+//}
+//void Rnet::run(Mat &image){
+//    image2Matrix(image, this->rgb);
+//
+//    feature2Matrix(this->rgb, this->conv1_matrix, this->conv1_wb);
+//    convolution(this->conv1_wb, this->rgb, this->conv1_out, this->conv1_matrix);
+//    prelu(this->conv1_out, this->conv1_wb->pbias, this->prelu_gmma1->pdata);
+//
+//    maxPooling(this->conv1_out, this->pooling1_out, 3, 2);
+//
+//    feature2Matrix(this->pooling1_out, this->conv2_matrix, this->conv2_wb);
+//    convolution(this->conv2_wb, this->pooling1_out, this->conv2_out, this->conv2_matrix);
+//    prelu(this->conv2_out, this->conv2_wb->pbias, this->prelu_gmma2->pdata);
+//    maxPooling(this->conv2_out, this->pooling2_out, 3, 2);
+//
+//    //conv3
+//    feature2Matrix(this->pooling2_out, this->conv3_matrix, this->conv3_wb);
+//    convolution(this->conv3_wb, this->pooling2_out, this->conv3_out, this->conv3_matrix);
+//    prelu(this->conv3_out, this->conv3_wb->pbias, this->prelu_gmma3->pdata);
+//
+//    //flatten
+//    fullconnect(this->fc4_wb, this->conv3_out, this->fc4_out);
+//    prelu(this->fc4_out, this->fc4_wb->pbias, this->prelu_gmma4->pdata);
+//
+//    //conv51   score
+//    fullconnect(this->score_wb, this->fc4_out, this->score_);
+//    addbias(this->score_, this->score_wb->pbias);
+//    softmax(this->score_);
+//
+//    //conv5_2   location
+//    fullconnect(this->location_wb, this->fc4_out, this->location_);
+//    addbias(this->location_, this->location_wb->pbias);
+//    // pBoxShow(location_);
+//}
 
 Onet::Onet(){
     Othreshold = 0.8;
@@ -471,12 +471,12 @@ void Onet::run(Mat &image){
 
 mtcnn::mtcnn(int row, int col){
     nms_threshold[0] = 0.7;
-    nms_threshold[1] = 0.7;
+    nms_threshold[1] = 0.2;
     nms_threshold[2] = 0.7;
 
     float minl = row<col?row:col;
     int MIN_DET_SIZE = 12;
-    int minsize = 40;
+    int minsize = 20;
     float m = (float)MIN_DET_SIZE/minsize;
     minl *= m;
     float factor = 0.709;
@@ -511,7 +511,9 @@ mtcnn::mtcnn(int row, int col){
         pnet_engine[i].init(changedH,changedW);
         simpleFace_[i] =  new Pnet(changedH,changedW,pnet_engine[i]);
     }
-
+    rnet_engine = new Rnet_engine();
+    rnet_engine->init(12,12);
+    refineNet = new Rnet(*rnet_engine);
 }
 
 mtcnn::~mtcnn(){
@@ -545,7 +547,7 @@ void mtcnn::findFace(Mat &image){
     //the first stage's nms
     if(count<1)return;
     nms(firstBbox_, firstOrderScore_, nms_threshold[0]);
-    refineAndSquareBbox(firstBbox_, image.rows, image.cols);
+    refineAndSquareBbox(firstBbox_, image.rows, image.cols,true);
 
     first_time = clock() - first_time;
 
@@ -557,12 +559,12 @@ void mtcnn::findFace(Mat &image){
         if((*it).exist){
             Rect temp((*it).y1, (*it).x1, (*it).y2-(*it).y1, (*it).x2-(*it).x1);
             Mat secImage;
-            resize(image(temp), secImage, Size(24, 24), 0, 0, cv::INTER_LINEAR);
-            refineNet.run(secImage);
-            if(*(refineNet.score_->pdata+1)>refineNet.Rthreshold){
-                memcpy(it->regreCoord, refineNet.location_->pdata, 4*sizeof(mydataFmt));
+            resize(image(temp), secImage, Size(22, 22), 0, 0, cv::INTER_LINEAR);
+            refineNet->run(secImage,*rnet_engine);
+            if(*(refineNet->score_->pdata+1)>refineNet->Rthreshold){
+                memcpy(it->regreCoord, refineNet->location_->pdata, 4*sizeof(mydataFmt));
                 it->area = (it->x2 - it->x1)*(it->y2 - it->y1);
-                it->score = *(refineNet.score_->pdata+1);
+                it->score = *(refineNet->score_->pdata+1);
                 secondBbox_.push_back(*it);
                 order.score = it->score;
                 order.oriOrder = count++;
@@ -575,48 +577,48 @@ void mtcnn::findFace(Mat &image){
     }
     if(count<1)return;
     nms(secondBbox_, secondBboxScore_, nms_threshold[1]);
-    refineAndSquareBbox(secondBbox_, image.rows, image.cols);
+    refineAndSquareBbox(secondBbox_, image.rows, image.cols,false);
     second_time = clock() - second_time;
     cout<<"second time is  "<<1000*(double)second_time/CLOCKS_PER_SEC<<endl;
     //third stage
-    count = 0;
-    clock_t third_time = clock();
+//    count = 0;
+//    clock_t third_time = clock();
+//    for(vector<struct Bbox>::iterator it=secondBbox_.begin(); it!=secondBbox_.end();it++){
+//        if((*it).exist){
+//            Rect temp((*it).y1, (*it).x1, (*it).y2-(*it).y1, (*it).x2-(*it).x1);
+//            Mat thirdImage;
+//            resize(image(temp), thirdImage, Size(48, 48), 0, 0, cv::INTER_LINEAR);
+//            outNet.run(thirdImage);
+//            mydataFmt *pp=NULL;
+//            if(*(outNet.score_->pdata+1)>outNet.Othreshold){
+//                memcpy(it->regreCoord, outNet.location_->pdata, 4*sizeof(mydataFmt));
+//                it->area = (it->x2 - it->x1)*(it->y2 - it->y1);
+//                it->score = *(outNet.score_->pdata+1);
+//                pp = outNet.keyPoint_->pdata;
+//                for(int num=0;num<5;num++){
+//                    (it->ppoint)[num] = it->y1 + (it->y2 - it->y1)*(*(pp+num));
+//                }
+//                for(int num=0;num<5;num++){
+//                    (it->ppoint)[num+5] = it->x1 + (it->x2 - it->x1)*(*(pp+num+5));
+//                }
+//                thirdBbox_.push_back(*it);
+//                order.score = it->score;
+//                order.oriOrder = count++;
+//                thirdBboxScore_.push_back(order);
+//            }
+//            else{
+//                it->exist=false;
+//            }
+//        }
+//    }
+//
+//    if(count<1)return;
+//    refineAndSquareBbox(thirdBbox_, image.rows, image.cols);
+//    nms(thirdBbox_, thirdBboxScore_, nms_threshold[2], "Min");
+//
+//    third_time = clock() - third_time;
+//    cout<<"third time is  "<<1000*(double)third_time/CLOCKS_PER_SEC<<endl;
     for(vector<struct Bbox>::iterator it=secondBbox_.begin(); it!=secondBbox_.end();it++){
-        if((*it).exist){
-            Rect temp((*it).y1, (*it).x1, (*it).y2-(*it).y1, (*it).x2-(*it).x1);
-            Mat thirdImage;
-            resize(image(temp), thirdImage, Size(48, 48), 0, 0, cv::INTER_LINEAR);
-            outNet.run(thirdImage);
-            mydataFmt *pp=NULL;
-            if(*(outNet.score_->pdata+1)>outNet.Othreshold){
-                memcpy(it->regreCoord, outNet.location_->pdata, 4*sizeof(mydataFmt));
-                it->area = (it->x2 - it->x1)*(it->y2 - it->y1);
-                it->score = *(outNet.score_->pdata+1);
-                pp = outNet.keyPoint_->pdata;
-                for(int num=0;num<5;num++){
-                    (it->ppoint)[num] = it->y1 + (it->y2 - it->y1)*(*(pp+num));
-                }
-                for(int num=0;num<5;num++){
-                    (it->ppoint)[num+5] = it->x1 + (it->x2 - it->x1)*(*(pp+num+5));
-                }
-                thirdBbox_.push_back(*it);
-                order.score = it->score;
-                order.oriOrder = count++;
-                thirdBboxScore_.push_back(order);
-            }
-            else{
-                it->exist=false;
-            }
-        }
-    }
-
-    if(count<1)return;
-    refineAndSquareBbox(thirdBbox_, image.rows, image.cols);
-    nms(thirdBbox_, thirdBboxScore_, nms_threshold[2], "Min");
-
-    third_time = clock() - third_time;
-    cout<<"third time is  "<<1000*(double)third_time/CLOCKS_PER_SEC<<endl;
-    for(vector<struct Bbox>::iterator it=thirdBbox_.begin(); it!=thirdBbox_.end();it++){
         if((*it).exist){
             rectangle(image, Point((*it).y1, (*it).x1), Point((*it).y2, (*it).x2), Scalar(0,0,255), 2,8,0);
             for(int num=0;num<5;num++)circle(image,Point((int)*(it->ppoint+num), (int)*(it->ppoint+num+5)),3,Scalar(0,255,255), -1);

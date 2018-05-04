@@ -2,6 +2,7 @@
 #define MTCNN_H
 #include "network.h"
 #include "pnet_rt.h"
+#include "rnet_rt.h"
 //class Pnet
 //{
 //public:
@@ -47,45 +48,45 @@
 //    void generateBbox(const struct pBox *score, const struct pBox *location, mydataFmt scale);
 //};
 
-class Rnet
-{
-public:
-    Rnet();
-    ~Rnet();
-    float Rthreshold;
-    void run(Mat &image);
-    struct pBox *score_;
-    struct pBox *location_;
-private:
-    struct pBox *rgb;
-
-    struct pBox *conv1_matrix;
-    struct pBox *conv1_out;
-    struct pBox *pooling1_out;
-
-    struct pBox *conv2_matrix;
-    struct pBox *conv2_out;
-    struct pBox *pooling2_out;
-
-    struct pBox *conv3_matrix;
-    struct pBox *conv3_out;
-
-    struct pBox *fc4_out;
-    
-    //Weight
-    struct Weight *conv1_wb;
-    struct pRelu *prelu_gmma1;
-    struct Weight *conv2_wb;
-    struct pRelu *prelu_gmma2;
-    struct Weight *conv3_wb;
-    struct pRelu *prelu_gmma3;
-    struct Weight *fc4_wb;
-    struct pRelu *prelu_gmma4;
-    struct Weight *score_wb;
-    struct Weight *location_wb;
-
-    void RnetImage2MatrixInit(struct pBox *pbox);
-};
+//class Rnet
+//{
+//public:
+//    Rnet();
+//    ~Rnet();
+//    float Rthreshold;
+//    void run(Mat &image);
+//    struct pBox *score_;
+//    struct pBox *location_;
+//private:
+//    struct pBox *rgb;
+//
+//    struct pBox *conv1_matrix;
+//    struct pBox *conv1_out;
+//    struct pBox *pooling1_out;
+//
+//    struct pBox *conv2_matrix;
+//    struct pBox *conv2_out;
+//    struct pBox *pooling2_out;
+//
+//    struct pBox *conv3_matrix;
+//    struct pBox *conv3_out;
+//
+//    struct pBox *fc4_out;
+//
+//    //Weight
+//    struct Weight *conv1_wb;
+//    struct pRelu *prelu_gmma1;
+//    struct Weight *conv2_wb;
+//    struct pRelu *prelu_gmma2;
+//    struct Weight *conv3_wb;
+//    struct pRelu *prelu_gmma3;
+//    struct Weight *fc4_wb;
+//    struct pRelu *prelu_gmma4;
+//    struct Weight *score_wb;
+//    struct Weight *location_wb;
+//
+//    void RnetImage2MatrixInit(struct pBox *pbox);
+//};
 
 class Onet
 {
@@ -144,10 +145,11 @@ private:
     float nms_threshold[3];
     vector<float> scales_;
     Pnet_engine *pnet_engine;
+    Rnet_engine *rnet_engine;
     Pnet **simpleFace_;
     vector<struct Bbox> firstBbox_;
     vector<struct orderScore> firstOrderScore_;
-    Rnet refineNet;
+    Rnet *refineNet;
     vector<struct Bbox> secondBbox_;
     vector<struct orderScore> secondBboxScore_;
     Onet outNet;

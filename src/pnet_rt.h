@@ -6,40 +6,14 @@
 #define MAIN_PNET_RT_H
 
 #include "network.h"
-#include <assert.h>
-#include <fstream>
-#include <sstream>
-#include <iostream>
-#include <cmath>
-#include <algorithm>
-#include <sys/stat.h>
-#include <time.h>
-#include <cuda_runtime_api.h>
-#include <string>
-#include "NvInfer.h"
-#include "NvCaffeParser.h"
 #include "common.h"
+#include "baseEngine.h"
 #endif //MAIN_PNET_RT_H
 using namespace nvinfer1;
 using namespace nvcaffeparser1;
 
-class Pnet_engine
+class Pnet_engine:public baseEngine
 {
-private:
-
-    const string prototxt;
-    const string model   ;
-    const char *INPUT_BLOB_NAME;
-    const char *OUTPUT_PROB_NAME;
-    const char *OUTPUT_LOCATION_NAME;
-    Logger gLogger;
-    IExecutionContext *context;
-    void caffeToGIEModel(const std::string& deployFile,				// name for caffe prototxt
-                         const std::string& modelFile,				// name for model
-                         const std::vector<std::string>& outputs,   // network outputs
-                         unsigned int maxBatchSize,					// batch size - NB must be at least as large as the batch we want to run with)
-                         IHostMemory *&gieModelStream);    // output buffer for the GIE model
-
 
 public:
     Pnet_engine();

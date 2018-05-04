@@ -123,6 +123,33 @@ main/fast:
 	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/build
 .PHONY : main/fast
 
+src/baseEngine.o: src/baseEngine.cpp.o
+
+.PHONY : src/baseEngine.o
+
+# target to build an object file
+src/baseEngine.cpp.o:
+	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/baseEngine.cpp.o
+.PHONY : src/baseEngine.cpp.o
+
+src/baseEngine.i: src/baseEngine.cpp.i
+
+.PHONY : src/baseEngine.i
+
+# target to preprocess a source file
+src/baseEngine.cpp.i:
+	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/baseEngine.cpp.i
+.PHONY : src/baseEngine.cpp.i
+
+src/baseEngine.s: src/baseEngine.cpp.s
+
+.PHONY : src/baseEngine.s
+
+# target to generate assembly for a file
+src/baseEngine.cpp.s:
+	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/baseEngine.cpp.s
+.PHONY : src/baseEngine.cpp.s
+
 src/common.o: src/common.cpp.o
 
 .PHONY : src/common.o
@@ -285,6 +312,33 @@ src/pnet_rt.cpp.s:
 	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/pnet_rt.cpp.s
 .PHONY : src/pnet_rt.cpp.s
 
+src/rnet_rt.o: src/rnet_rt.cpp.o
+
+.PHONY : src/rnet_rt.o
+
+# target to build an object file
+src/rnet_rt.cpp.o:
+	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/rnet_rt.cpp.o
+.PHONY : src/rnet_rt.cpp.o
+
+src/rnet_rt.i: src/rnet_rt.cpp.i
+
+.PHONY : src/rnet_rt.i
+
+# target to preprocess a source file
+src/rnet_rt.cpp.i:
+	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/rnet_rt.cpp.i
+.PHONY : src/rnet_rt.cpp.i
+
+src/rnet_rt.s: src/rnet_rt.cpp.s
+
+.PHONY : src/rnet_rt.s
+
+# target to generate assembly for a file
+src/rnet_rt.cpp.s:
+	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/rnet_rt.cpp.s
+.PHONY : src/rnet_rt.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -294,6 +348,9 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
 	@echo "... main"
+	@echo "... src/baseEngine.o"
+	@echo "... src/baseEngine.i"
+	@echo "... src/baseEngine.s"
 	@echo "... src/common.o"
 	@echo "... src/common.i"
 	@echo "... src/common.s"
@@ -312,6 +369,9 @@ help:
 	@echo "... src/pnet_rt.o"
 	@echo "... src/pnet_rt.i"
 	@echo "... src/pnet_rt.s"
+	@echo "... src/rnet_rt.o"
+	@echo "... src/rnet_rt.i"
+	@echo "... src/rnet_rt.s"
 .PHONY : help
 
 

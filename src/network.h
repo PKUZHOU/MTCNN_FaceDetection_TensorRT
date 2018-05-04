@@ -14,6 +14,15 @@
 #include <string>
 #include <math.h>
 #include "pBox.h"
+#include <assert.h>
+#include <sstream>
+#include <iostream>
+#include <cmath>
+#include <sys/stat.h>
+#include <time.h>
+#include <cuda_runtime_api.h>
+#include "NvInfer.h"
+#include "NvCaffeParser.h"
 using namespace cv;
 
 void addbias(struct pBox *pbox, mydataFmt *pbias);
@@ -40,6 +49,6 @@ void fullconnectInit(const Weight *weight, pBox *outpBox);
 
 bool cmpScore(struct orderScore lsh, struct orderScore rsh);
 void nms(vector<struct Bbox> &boundingBox_, vector<struct orderScore> &bboxScore_, const float overlap_threshold, string modelname = "Union");
-void refineAndSquareBbox(vector<struct Bbox> &vecBbox, const int &height, const int &width);
+void refineAndSquareBbox(vector<struct Bbox> &vecBbox, const int &height, const int &width,bool square);
 
 #endif

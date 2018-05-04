@@ -4,7 +4,7 @@
 
 int main()
 {
-    Mat image = imread("4.jpg");
+    Mat image = imread("/home/zhou/timg.jpg");
     mtcnn find(image.rows, image.cols);
     clock_t start;
     start = clock();

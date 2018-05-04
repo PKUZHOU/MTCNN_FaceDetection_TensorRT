@@ -92,6 +92,12 @@
 				</MakeCommands>
 			</Target>
 		</Build>
+		<Unit filename="/home/zhou/MTCNN_TensorRT/src/baseEngine.cpp">
+			<Option target="main"/>
+		</Unit>
+		<Unit filename="/home/zhou/MTCNN_TensorRT/src/baseEngine.h">
+			<Option target="main"/>
+		</Unit>
 		<Unit filename="/home/zhou/MTCNN_TensorRT/src/common.cpp">
 			<Option target="main"/>
 		</Unit>
@@ -123,6 +129,12 @@
 			<Option target="main"/>
 		</Unit>
 		<Unit filename="/home/zhou/MTCNN_TensorRT/src/pnet_rt.h">
+			<Option target="main"/>
+		</Unit>
+		<Unit filename="/home/zhou/MTCNN_TensorRT/src/rnet_rt.cpp">
+			<Option target="main"/>
+		</Unit>
+		<Unit filename="/home/zhou/MTCNN_TensorRT/src/rnet_rt.h">
 			<Option target="main"/>
 		</Unit>
 		<Unit filename="/home/zhou/MTCNN_TensorRT/CMakeLists.txt">
