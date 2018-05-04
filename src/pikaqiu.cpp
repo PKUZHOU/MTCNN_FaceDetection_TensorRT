@@ -9,10 +9,11 @@ int main()
     clock_t start;
     start = clock();
     find.findFace(image);
+    start = clock() -start;
     imshow("result", image);
     imwrite("result.jpg",image);
-    start = clock() -start;
-    cout<<"time is  "<<start/10e3<<endl;
+
+    cout<<"time is  "<<1000*(double)start/CLOCKS_PER_SEC<<endl;
     // Mat image;
     // VideoCapture cap(0);
     // if(!cap.isOpened())  

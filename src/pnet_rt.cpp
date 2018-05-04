@@ -2,20 +2,50 @@
 // Created by zhou on 18-4-30.
 //
 #include "pnet_rt.h"
-
+#include <fstream>
 // stuff we know about the network and the caffe input/output blobs
-static Logger gLogger;
-
-
-Pnet_engine::Pnet_engine() : prototxt("/home/zhou/12net.prototxt"),
-                             model("/home/zhou/12net.caffemodel"),
+Pnet_engine::Pnet_engine() : prototxt("12net.prototxt"),
+                             model("12net.caffemodel"),
                              INPUT_BLOB_NAME("data"),
                              OUTPUT_LOCATION_NAME("conv4-2"),
                              OUTPUT_PROB_NAME("prob1") {
-    caffeToGIEModel(prototxt, model, std::vector<std::string>{OUTPUT_PROB_NAME, OUTPUT_LOCATION_NAME}, 1,
-                    gieModelStream);
 };
+Pnet_engine::~Pnet_engine() {
+    shutdownProtobufLibrary();
+}
 
+void Pnet_engine::init(int row,int col) {
+
+    //modifiy the input shape of prototxt, write to temp.prototxt
+    int first_spce = 16, second_space = 4;
+    fstream protofile;
+    protofile.open(prototxt,ios::in);
+    std::stringstream buffer;
+    buffer<<protofile.rdbuf();
+    std::string contents(buffer.str());
+    string::size_type position_h,position_w;
+    position_h = contents.find("dim");
+    while(isdigit(contents[position_h+first_spce]))
+    {
+        contents.erase(position_h+first_spce,1);
+    }
+    contents.insert(position_h+first_spce,to_string(row));
+    position_w = contents.find("dim",position_h+first_spce);
+    while(isdigit(contents[position_w+second_space]))
+    {
+        contents.erase(position_w+second_space,1);
+    }
+    contents.insert(position_w+second_space,to_string(col));
+    protofile.close();
+    protofile.open("temp.prototxt",ios::out);
+    protofile.write(contents.c_str(),contents.size());
+    protofile.close();
+    IHostMemory *gieModelStream{nullptr};
+    //generate Tensorrt model
+    caffeToGIEModel("temp.prototxt", model, std::vector<std::string>{OUTPUT_PROB_NAME, OUTPUT_LOCATION_NAME}, 1,
+                    gieModelStream);
+
+}
 void Pnet_engine::caffeToGIEModel(const std::string &deployFile,                // name for caffe prototxt
                                   const std::string &modelFile,                // name for model
                                   const std::vector<std::string> &outputs,   // network outputs
@@ -29,14 +59,10 @@ void Pnet_engine::caffeToGIEModel(const std::string &deployFile,                
     INetworkDefinition *network = builder->createNetwork();
     ICaffeParser *parser = createCaffeParser();
 
-    std::cout << "Beging parsing Pnet model..." << std::endl;
-    const IBlobNameToTensor *blobNameToTensor = parser->parse(prototxt.c_str(),
-                                                              model.c_str(),
+    const IBlobNameToTensor *blobNameToTensor = parser->parse(deployFile.c_str(),
+                                                              modelFile.c_str(),
                                                               *network,
                                                               nvinfer1::DataType::kFLOAT);
-
-    std::cout << "End parsing Pnet model" << endl;
-
     // specify which tensors are outputs
     for (auto &s : outputs)
         network->markOutput(*blobNameToTensor->find(s.c_str()));
@@ -44,55 +70,25 @@ void Pnet_engine::caffeToGIEModel(const std::string &deployFile,                
     // Build the engine
     builder->setMaxBatchSize(maxBatchSize);
     builder->setMaxWorkspaceSize(5 << 20);
-
-    std::cout << "Begin building pnet engine..." << endl;
-    engine = builder->buildCudaEngine(*network);
+    ICudaEngine*engine = builder->buildCudaEngine(*network);
     assert(engine);
-    std::cout << "End building pnet engine" << endl;
+    context = engine->createExecutionContext();
 
     // we don't need the network any more, and we can destroy the parser
     network->destroy();
     parser->destroy();
-
-    // serialize the engine, then close everything down
-    runtime = createInferRuntime(gLogger);
-    context = engine->createExecutionContext();
     builder->destroy();
-    shutdownProtobufLibrary();
 
 }
-
-
-Pnet::Pnet() : BatchSize(1),
-               INPUT_C(3) {
-
+Pnet::Pnet(int row,int col,const  Pnet_engine&pnet_engine) : BatchSize(1),
+               INPUT_C(3),Engine(pnet_engine.context->getEngine()) {
     Pthreshold = 0.6;
     nms_threshold = 0.5;
-    firstFlag = true;
-
     this->score_ = new pBox;
     this->location_ = new pBox;
-
-
-}
-
-Pnet::~Pnet() {
-
-    delete (score_);
-    delete (location_);
-
-}
-
-
-void Pnet::run(Mat &image, float scale, Pnet_engine &pnet_engine) {
-
-
-//
-//    if (firstFlag)
-
-    INPUT_W = image.cols;
-    INPUT_H = image.rows;
-
+    this->rgb  = new pBox;
+    INPUT_W = col;
+    INPUT_H = row;
     //calculate output shape
     this->score_->width = int(ceil((INPUT_W - 2) / 2.) - 4);
     this->score_->height = int(ceil((INPUT_H - 2) / 2.) - 4);
@@ -103,47 +99,49 @@ void Pnet::run(Mat &image, float scale, Pnet_engine &pnet_engine) {
     this->location_->channel = 4;
 
     OUT_PROB_SIZE = this->score_->width * this->score_->height * this->score_->channel;
-    OUT_LOCATION_SIZE = this->location_->width * this->location_->height * this->score_->channel;
+    OUT_LOCATION_SIZE = this->location_->width * this->location_->height * this->location_->channel;
     //allocate memory for outputs
+    this->rgb->pdata = (float*) malloc(INPUT_C*INPUT_H*INPUT_W*sizeof(float));
     this->score_->pdata = (float *) malloc(OUT_PROB_SIZE * sizeof(float));
     this->location_->pdata = (float *) malloc(OUT_LOCATION_SIZE * sizeof(float));
 
-
-    const ICudaEngine &Engine = pnet_engine.context->getEngine();
     assert(Engine.getNbBindings() == 3);
-    void *buffers[3];
-
-    int     inputIndex = Engine.getBindingIndex(pnet_engine.INPUT_BLOB_NAME),
-            outputProb = Engine.getBindingIndex(pnet_engine.OUTPUT_PROB_NAME),
-            outputLocation = Engine.getBindingIndex(pnet_engine.OUTPUT_LOCATION_NAME);
+    inputIndex = Engine.getBindingIndex(pnet_engine.INPUT_BLOB_NAME),
+    outputProb = Engine.getBindingIndex(pnet_engine.OUTPUT_PROB_NAME),
+    outputLocation = Engine.getBindingIndex(pnet_engine.OUTPUT_LOCATION_NAME);
 
     //creat GPU buffers and stream
     CHECK(cudaMalloc(&buffers[inputIndex], BatchSize * INPUT_C * INPUT_H * INPUT_W * sizeof(float)));
-
     CHECK(cudaMalloc(&buffers[outputProb], BatchSize * OUT_PROB_SIZE * sizeof(float)));
     CHECK(cudaMalloc(&buffers[outputLocation], BatchSize * OUT_LOCATION_SIZE * sizeof(float)));
-
-    cudaStream_t stream;
     CHECK(cudaStreamCreate(&stream));
+}
+
+Pnet::~Pnet() {
+
+    delete (score_);
+    delete (location_);
+
+    cudaStreamDestroy(stream);
+    CHECK(cudaFree(buffers[inputIndex]));
+    CHECK(cudaFree(buffers[outputProb]));
+    CHECK(cudaFree(buffers[outputLocation]));
+}
+
+void Pnet::run(Mat &image, float scale, const Pnet_engine &pnet_engine) {
+
 
     //DMA the input to the GPU ,execute the batch asynchronously and DMA it back;
 
-    CHECK(cudaMemcpyAsync(buffers[inputIndex], image.data, BatchSize * INPUT_C * INPUT_H * INPUT_W * sizeof(float),
+    image2Matrix(image, this->rgb);
+    CHECK(cudaMemcpyAsync(buffers[inputIndex], this->rgb->pdata, BatchSize * INPUT_C * INPUT_H * INPUT_W * sizeof(float),
                           cudaMemcpyHostToDevice, stream));
     pnet_engine.context->enqueue(BatchSize, buffers, stream, nullptr);
     CHECK(cudaMemcpyAsync(this->score_->pdata, buffers[outputProb], BatchSize * OUT_PROB_SIZE * sizeof(float),
                           cudaMemcpyDeviceToHost, stream));
     CHECK(cudaMemcpyAsync(this->location_->pdata, buffers[outputLocation],
                           BatchSize * OUT_LOCATION_SIZE * sizeof(float), cudaMemcpyDeviceToHost, stream));
-
-
-
     cudaStreamSynchronize(stream);
-
-    cudaStreamDestroy(stream);
-    CHECK(cudaFree(buffers[inputIndex]));
-    CHECK(cudaFree(buffers[outputProb]));
-    CHECK(cudaFree(buffers[outputLocation]));
     generateBbox(this->score_, this->location_, scale);
 
 }

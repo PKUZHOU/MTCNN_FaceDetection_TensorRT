@@ -45,7 +45,7 @@ void image2Matrix(const Mat &image, const struct pBox *pbox){
     mydataFmt *p = pbox->pdata;
     for (int rowI = 0; rowI < image.rows; rowI++){
         for (int colK = 0; colK < image.cols; colK++){
-            *p = (image.at<Vec3b>(rowI, colK)[0] - 127.5)*0.0078125;//opencvµÄÍ¨µÀÅÅÐòÊÇRGB
+            *p = (image.at<Vec3b>(rowI, colK)[0] - 127.5)*0.0078125;
             *(p + image.rows*image.cols) = (image.at<Vec3b>(rowI, colK)[1] - 127.5)*0.0078125;
             *(p + 2*image.rows*image.cols) = (image.at<Vec3b>(rowI, colK)[2] - 127.5)*0.0078125;
             p++;
@@ -171,7 +171,7 @@ void maxPooling(const pBox *pbox, pBox *Matrix, int kernelSize, int stride){
     mydataFmt *pIn;
     mydataFmt *ptemp;
     mydataFmt maxNum = 0;
-    if((pbox->width-kernelSize)%stride==0){
+    if((pbox->width-kernelSize)%stride==0&& (pbox->height - kernelSize) % stride == 0){
         for (int row = 0; row< Matrix->height; row ++){
             for (int col = 0; col < Matrix->width; col++){
                 pIn = pbox->pdata + row*stride*pbox->width + col*stride;
@@ -198,7 +198,7 @@ void maxPooling(const pBox *pbox, pBox *Matrix, int kernelSize, int stride){
                     ptemp = pIn + row*stride*pbox->width + col*stride;
                     maxNum = *ptemp;
                     diffh = row*stride-pbox->height+1;
-                    diffw = col*stride-pbox->height+1;
+                    diffw = col*stride-pbox->width+1;
                     for (int kernelRow = 0; kernelRow < kernelSize; kernelRow++){
                         if((kernelRow+diffh)>0)break;
                         for(int i=0;i<kernelSize;i++){
