@@ -45,7 +45,7 @@ void image2Matrix(const Mat &image, const struct pBox *pbox){
     mydataFmt *p = pbox->pdata;
     for (int rowI = 0; rowI < image.rows; rowI++){
         for (int colK = 0; colK < image.cols; colK++){
-            *p = (image.at<Vec3b>(rowI, colK)[0] - 127.5)*0.0078125;
+            *p = (image.at<Vec3b>(rowI, colK)[0] - 127.5)*0.007812;
             *(p + image.rows*image.cols) = (image.at<Vec3b>(rowI, colK)[1] - 127.5)*0.0078125;
             *(p + 2*image.rows*image.cols) = (image.at<Vec3b>(rowI, colK)[2] - 127.5)*0.0078125;
             p++;

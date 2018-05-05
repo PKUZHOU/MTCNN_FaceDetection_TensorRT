@@ -54,7 +54,7 @@ void Pnet_engine::init(int row, int col) {
 
 Pnet::Pnet(int row, int col, const Pnet_engine &pnet_engine) : BatchSize(1),
                                                                INPUT_C(3), Engine(pnet_engine.context->getEngine()) {
-    Pthreshold = 0.9;
+    Pthreshold = 0.8;
     nms_threshold = 0.5;
     this->score_ = new pBox;
     this->location_ = new pBox;
@@ -120,12 +120,12 @@ void Pnet::run(Mat &image, float scale, const Pnet_engine &pnet_engine) {
     cudaStreamSynchronize(stream);
 
     first_pure = clock() - first_pure;
-    cout<<"first pure: "<<first_pure/1000.<<endl;
+//    cout<<"first pure: "<<first_pure/1000.<<endl;
 
     clock_t first_gen = clock();
 
     generateBbox(this->score_, this->location_, scale);
-    cout<<"first gen: "<<(clock() - first_gen)/1000.<<endl;
+//    cout<<"first gen: "<<(clock() - first_gen)/1000.<<endl;
 }
 
 void Pnet::generateBbox(const struct pBox *score, const struct pBox *location, mydataFmt scale) {

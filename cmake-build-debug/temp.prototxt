@@ -4,7 +4,7 @@ layer
    name: "data"
    type: "Input"
    top:  "data"
-   input_param{shape:{dim:1 dim:3 dim:13 dim:17}}
+   input_param{shape:{dim:1 dim:3 dim:14 dim:18}}
 }
 layer {
   name: "conv1"

@@ -25,9 +25,7 @@ public:
 class Rnet {
 public:
     Rnet(const Rnet_engine &rnet_engine);
-
     ~Rnet();
-
     void run(Mat &image, const Rnet_engine &engine);
 
     float nms_threshold;
@@ -41,7 +39,6 @@ public:
     struct pBox *score_;
     struct pBox *rgb;
 private:
-
     const int BatchSize;
     const int INPUT_C;
     const ICudaEngine &Engine;

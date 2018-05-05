@@ -16,7 +16,7 @@ AUX_SOURCE_DIRECTORY(./src DIR_SRCS)
 add_executable( main ${DIR_SRCS} src/pnet_rt.cpp src/common.h src/common.cpp src/pnet_rt.h src/rnet_rt.cpp src/rnet_rt.h src/baseEngine.cpp src/baseEngine.h)
 
 set(CMAKE_CXX_FLAGS  "-lpthread")
-
+set(CMAKE_CXX_FLAGS  "-Ofast")
 target_link_libraries( main ${OpenCV_LIBS} )
 target_link_libraries( main openblas)
 target_link_libraries( main cudart)
