@@ -14,13 +14,19 @@ I fix some bugs, but still no inplemention of Onet.
 If you want to run this project, you need
 
 1.CUDA 9.0
+
 2.TensorRT 3.04
+
 3.cmake >=3.5
+
 4.a digital camera to run camera test.
+
 replace the tensorrt and cuda path in CMakeLists.txt, then run
 
 cmake .
+
 make -j
+
 ./main
 
 the results will be
