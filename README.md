@@ -33,4 +33,4 @@ the results will be
 
 ![camera](https://github.com/PKUZHOU/MTCNN_TensorRT/blob/master/pictures/camera.png)
 
-on my computer with nvidia-gt7300 and intel i5 6500, when the min face-size is set to 20 pixels, the inference time is about 24ms perframe.
+on my computer with nvidia-gt730 and intel i5 6500, when the min face-size is set to 20 pixels, the inference time is about 24ms perframe.
