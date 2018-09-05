@@ -104,10 +104,10 @@ void Pnet::run(Mat &image, float scale, const Pnet_engine &pnet_engine) {
 
 
     //DMA the input to the GPU ,execute the batch asynchronously and DMA it back;
-    clock_t in2matix = clock();
+//    clock_t in2matix = clock();
     image2Matrix(image, this->rgb);
-    cout<<"first convert: "<<(clock() - in2matix)/1000.<<endl;
-    clock_t first_pure = clock();
+    //cout<<"first convert: "<<(clock() - in2matix)/1000.<<endl;
+//    clock_t first_pure = clock();
 
     CHECK(cudaMemcpyAsync(buffers[inputIndex], this->rgb->pdata,
                           BatchSize * INPUT_C * INPUT_H * INPUT_W * sizeof(float),
@@ -119,7 +119,7 @@ void Pnet::run(Mat &image, float scale, const Pnet_engine &pnet_engine) {
                           BatchSize * OUT_LOCATION_SIZE * sizeof(float), cudaMemcpyDeviceToHost, stream));
     cudaStreamSynchronize(stream);
 
-    first_pure = clock() - first_pure;
+//    first_pure = clock() - first_pure;
 //    cout<<"first pure: "<<first_pure/1000.<<endl;
 
     clock_t first_gen = clock();

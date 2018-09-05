@@ -10,7 +10,7 @@
 #include <sys/stat.h>
 #include <cuda_runtime_api.h>
 #include "NvInfer.h"
-#include "NvCaffeParser.h""
+#include "NvCaffeParser.h"
 #ifndef MAIN_BASEENGINE_H
 #define MAIN_BASEENGINE_H
 using namespace nvinfer1;

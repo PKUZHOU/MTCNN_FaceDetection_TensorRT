@@ -1,5 +1,5 @@
 #include "mtcnn.h"
-#define LOG
+//#define LOG
 Onet::Onet(){
     Othreshold = 0.8;
     this->rgb = new pBox;
