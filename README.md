@@ -29,7 +29,7 @@ I adopt the original models from offical project https://github.com/kpzhang93/MT
 1) ./main
 
 ## Results
-The results will be like this in single image test mode:
+The result will be like this in single image test mode:
 
 ![single](https://github.com/PKUZHOU/MTCNN_TensorRT/blob/master/pictures/result.jpg)
 
