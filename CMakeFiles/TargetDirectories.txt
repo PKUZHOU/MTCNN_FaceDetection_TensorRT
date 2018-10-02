@@ -1,3 +1,0 @@
-/home/zhou/MTCNN_TensorRT/CMakeFiles/rebuild_cache.dir
-/home/zhou/MTCNN_TensorRT/CMakeFiles/main.dir
-/home/zhou/MTCNN_TensorRT/CMakeFiles/edit_cache.dir
