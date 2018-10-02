@@ -15,6 +15,7 @@ I adopt the original models from offical project https://github.com/kpzhang93/MT
 
 
 ## Required environments
+1) OpenCV (on ubuntu just run sudo apt-get install libopencv-dev to install opencv)
 1) CUDA 9.0
 1) TensorRT 3.04 or TensorRT 4.16 (I only test these two versions)
 1) Cmake >=3.5
