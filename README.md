@@ -35,7 +35,7 @@ The result will be like this in single image test mode:
 ![single](https://github.com/PKUZHOU/MTCNN_TensorRT/blob/master/pictures/result.jpg)
 
 ## Speed
-On my computer with nvidia-gt730 grapic card (it is very very poor) and intel i5 6500 cpu, when the min face-size is set to 60 pixels, the above image costs 20 to 30ms.
+On my computer with nvidia-gt730 grapic card (its performance is very very poor) and intel i5 6500 cpu, when the min face-size is set to 60 pixels, the above image costs 20 to 30ms.
 
 ## TODO
 Take other techniques (such as pipline and multithread) to speed up.
