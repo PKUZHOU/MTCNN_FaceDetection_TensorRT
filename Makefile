@@ -177,6 +177,33 @@ src/common.cpp.s:
 	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/common.cpp.s
 .PHONY : src/common.cpp.s
 
+src/demo.o: src/demo.cpp.o
+
+.PHONY : src/demo.o
+
+# target to build an object file
+src/demo.cpp.o:
+	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/demo.cpp.o
+.PHONY : src/demo.cpp.o
+
+src/demo.i: src/demo.cpp.i
+
+.PHONY : src/demo.i
+
+# target to preprocess a source file
+src/demo.cpp.i:
+	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/demo.cpp.i
+.PHONY : src/demo.cpp.i
+
+src/demo.s: src/demo.cpp.s
+
+.PHONY : src/demo.s
+
+# target to generate assembly for a file
+src/demo.cpp.s:
+	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/demo.cpp.s
+.PHONY : src/demo.cpp.s
+
 src/mtcnn.o: src/mtcnn.cpp.o
 
 .PHONY : src/mtcnn.o
@@ -231,59 +258,32 @@ src/network.cpp.s:
 	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/network.cpp.s
 .PHONY : src/network.cpp.s
 
-src/pBox.o: src/pBox.cpp.o
+src/onet_rt.o: src/onet_rt.cpp.o
 
-.PHONY : src/pBox.o
-
-# target to build an object file
-src/pBox.cpp.o:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/pBox.cpp.o
-.PHONY : src/pBox.cpp.o
-
-src/pBox.i: src/pBox.cpp.i
-
-.PHONY : src/pBox.i
-
-# target to preprocess a source file
-src/pBox.cpp.i:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/pBox.cpp.i
-.PHONY : src/pBox.cpp.i
-
-src/pBox.s: src/pBox.cpp.s
-
-.PHONY : src/pBox.s
-
-# target to generate assembly for a file
-src/pBox.cpp.s:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/pBox.cpp.s
-.PHONY : src/pBox.cpp.s
-
-src/pikaqiu.o: src/pikaqiu.cpp.o
-
-.PHONY : src/pikaqiu.o
+.PHONY : src/onet_rt.o
 
 # target to build an object file
-src/pikaqiu.cpp.o:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/pikaqiu.cpp.o
-.PHONY : src/pikaqiu.cpp.o
+src/onet_rt.cpp.o:
+	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/onet_rt.cpp.o
+.PHONY : src/onet_rt.cpp.o
 
-src/pikaqiu.i: src/pikaqiu.cpp.i
+src/onet_rt.i: src/onet_rt.cpp.i
 
-.PHONY : src/pikaqiu.i
+.PHONY : src/onet_rt.i
 
 # target to preprocess a source file
-src/pikaqiu.cpp.i:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/pikaqiu.cpp.i
-.PHONY : src/pikaqiu.cpp.i
+src/onet_rt.cpp.i:
+	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/onet_rt.cpp.i
+.PHONY : src/onet_rt.cpp.i
 
-src/pikaqiu.s: src/pikaqiu.cpp.s
+src/onet_rt.s: src/onet_rt.cpp.s
 
-.PHONY : src/pikaqiu.s
+.PHONY : src/onet_rt.s
 
 # target to generate assembly for a file
-src/pikaqiu.cpp.s:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/pikaqiu.cpp.s
-.PHONY : src/pikaqiu.cpp.s
+src/onet_rt.cpp.s:
+	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/onet_rt.cpp.s
+.PHONY : src/onet_rt.cpp.s
 
 src/pnet_rt.o: src/pnet_rt.cpp.o
 
@@ -354,18 +354,18 @@ help:
 	@echo "... src/common.o"
 	@echo "... src/common.i"
 	@echo "... src/common.s"
+	@echo "... src/demo.o"
+	@echo "... src/demo.i"
+	@echo "... src/demo.s"
 	@echo "... src/mtcnn.o"
 	@echo "... src/mtcnn.i"
 	@echo "... src/mtcnn.s"
 	@echo "... src/network.o"
 	@echo "... src/network.i"
 	@echo "... src/network.s"
-	@echo "... src/pBox.o"
-	@echo "... src/pBox.i"
-	@echo "... src/pBox.s"
-	@echo "... src/pikaqiu.o"
-	@echo "... src/pikaqiu.i"
-	@echo "... src/pikaqiu.s"
+	@echo "... src/onet_rt.o"
+	@echo "... src/onet_rt.i"
+	@echo "... src/onet_rt.s"
 	@echo "... src/pnet_rt.o"
 	@echo "... src/pnet_rt.i"
 	@echo "... src/pnet_rt.s"

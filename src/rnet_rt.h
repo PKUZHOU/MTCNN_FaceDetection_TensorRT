@@ -13,11 +13,8 @@ class Rnet_engine : public baseEngine {
 
 public:
     Rnet_engine();
-
     ~Rnet_engine();
-
     void init(int row, int col);
-
     friend class Rnet;
 
 };
@@ -27,14 +24,8 @@ public:
     Rnet(const Rnet_engine &rnet_engine);
     ~Rnet();
     void run(Mat &image, const Rnet_engine &engine);
-
-    float nms_threshold;
     mydataFmt Rthreshold;
     cudaStream_t stream;
-
-    vector<struct Bbox> boundingBox_;
-    vector<orderScore> bboxScore_;
-    struct pBox *loc_score_;
     struct pBox *location_;
     struct pBox *score_;
     struct pBox *rgb;
@@ -45,10 +36,10 @@ private:
     //must be computed at runtime
     int INPUT_H;
     int INPUT_W;
-    int OUT_SIZE;
-    int inputIndex,
-            output;
-    void *buffers[2];
+    int OUT_PROB_SIZE;
+    int OUT_LOCATION_SIZE;
+    int inputIndex,outputProb,outputLocation;
+    void *buffers[3];
 
 };
 

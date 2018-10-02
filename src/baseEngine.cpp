@@ -3,12 +3,15 @@
 //
 
 #include "baseEngine.h"
-baseEngine::baseEngine(const char * prototxt,const char* model,const  char* input_name,const char*location_name,const char* prob_name) :
+baseEngine::baseEngine(const char * prototxt,const char* model,const  char* input_name,const char*location_name,
+                       const char* prob_name, const char *point_name) :
                              prototxt(prototxt),
                              model(model),
                              INPUT_BLOB_NAME(input_name),
                              OUTPUT_LOCATION_NAME(location_name),
-                             OUTPUT_PROB_NAME(prob_name) {
+                             OUTPUT_PROB_NAME(prob_name),
+                             OUTPUT_POINT_NAME(point_name)
+{
 };
 baseEngine::~baseEngine() {
     shutdownProtobufLibrary();
@@ -40,7 +43,7 @@ void baseEngine::caffeToGIEModel(const std::string &deployFile,                /
 
     // Build the engine
     builder->setMaxBatchSize(maxBatchSize);
-    builder->setMaxWorkspaceSize(2 << 20);
+    builder->setMaxWorkspaceSize(1 << 25);
     ICudaEngine*engine = builder->buildCudaEngine(*network);
     assert(engine);
     context = engine->createExecutionContext();

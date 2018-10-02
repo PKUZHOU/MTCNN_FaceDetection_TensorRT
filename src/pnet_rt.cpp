@@ -1,16 +1,12 @@
 //
 // Created by zhou on 18-4-30.
 //
-#
-
-
 #include "pnet_rt.h"
-
 #include <fstream>
 
 // stuff we know about the network and the caffe input/output blobs
-Pnet_engine::Pnet_engine() : baseEngine("12net.prototxt",
-                                        "12net.caffemodel",
+Pnet_engine::Pnet_engine() : baseEngine("det1_relu.prototxt",
+                                        "det1_relu.caffemodel",
                                         "data",
                                         "conv4-2",
                                         "prob1") {
@@ -54,7 +50,7 @@ void Pnet_engine::init(int row, int col) {
 
 Pnet::Pnet(int row, int col, const Pnet_engine &pnet_engine) : BatchSize(1),
                                                                INPUT_C(3), Engine(pnet_engine.context->getEngine()) {
-    Pthreshold = 0.8;
+    Pthreshold = 0.6;
     nms_threshold = 0.5;
     this->score_ = new pBox;
     this->location_ = new pBox;
@@ -104,11 +100,7 @@ void Pnet::run(Mat &image, float scale, const Pnet_engine &pnet_engine) {
 
 
     //DMA the input to the GPU ,execute the batch asynchronously and DMA it back;
-//    clock_t in2matix = clock();
     image2Matrix(image, this->rgb);
-    //cout<<"first convert: "<<(clock() - in2matix)/1000.<<endl;
-//    clock_t first_pure = clock();
-
     CHECK(cudaMemcpyAsync(buffers[inputIndex], this->rgb->pdata,
                           BatchSize * INPUT_C * INPUT_H * INPUT_W * sizeof(float),
                           cudaMemcpyHostToDevice, stream));
@@ -118,14 +110,8 @@ void Pnet::run(Mat &image, float scale, const Pnet_engine &pnet_engine) {
     CHECK(cudaMemcpyAsync(this->location_->pdata, buffers[outputLocation],
                           BatchSize * OUT_LOCATION_SIZE * sizeof(float), cudaMemcpyDeviceToHost, stream));
     cudaStreamSynchronize(stream);
-
-//    first_pure = clock() - first_pure;
-//    cout<<"first pure: "<<first_pure/1000.<<endl;
-
-    clock_t first_gen = clock();
-
     generateBbox(this->score_, this->location_, scale);
-//    cout<<"first gen: "<<(clock() - first_gen)/1000.<<endl;
+
 }
 
 void Pnet::generateBbox(const struct pBox *score, const struct pBox *location, mydataFmt scale) {
