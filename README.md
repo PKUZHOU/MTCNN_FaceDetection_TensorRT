@@ -40,6 +40,6 @@ The results will be like this in single image test mode:
 ***
 On my computer with nvidia-gt730 grapic card (it is very very poor) and intel i5 6500 cpu, when the min face-size is set to 60 pixels, the above image costs 20 to 30ms.
 
-##TODO
+## TODO
 ***
 Take other techniques (such as pipline and multithread) to speed up.
