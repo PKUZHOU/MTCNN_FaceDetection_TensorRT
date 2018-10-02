@@ -1,36 +1,45 @@
 # MTCNN_TensorRT
-MTCNN C++ implementation with NVIDIA TensorRT Inference accelerator SDK
+***
+**MTCNN Face detection algorithm's C++ implementation with NVIDIA TensorRT Inference acceleration SDK.**
 
 This repository is based on https://github.com/AlphaQi/MTCNN-light.git
 
-Now it is under building, I will implement MTCNN face-detection algorithum with NVIDIA TensorRT C++ API to get high performance on platforms such as NVIDIA TX2 or any PC with NVIDIA-GPUs. 
+## Notations
+
+2018/10/2: Good news! Now you can run the whole MTCNN using TenorRT 3.0 or 4.0! 
+
+I adopt the original models from offical project https://github.com/kpzhang93/MTCNN_face_detection_alignment and do the following modifications:
+  Considering TensorRT don't support PRelu layer, which is widely used in MTCNN, one solution is to add Plugin Layer (costome layer) but experiments show that this method breaks the CBR process in TensorRT and is very slow. I use Relu layer, Scale layer and ElementWise addition Layer to replace Prelu (as illustrated below), which only adds a bit of computation and won't affect CBR process, the weights of scale layers derive from original Prelu layers. 
+  
+  ![modification](https://github.com/PKUZHOU/MTCNN_TensorRT/blob/master/pictures/modification.png)
 
 
-6/14：
-This project can run Pnet and Rnet, the speed is very fast. Just use cmake to build this project
+## Required environments
+***
+1) CUDA 9.0
+1) TensorRT 3.04 or TensorRT 4.16 (I only test these two versions)
+1) Cmake >=3.5
+1) A digital camera to run camera test.
 
-9/5:
-I fix some bugs, but still no inplemention of Onet.
-If you want to run this project, you need
+## Build
+***
+1) Replace the tensorrt and cuda path in CMakeLists.txt
+1) Configure the detection parameters in mtcnn.cpp (min face size, the nms thresholds , etc)
+1) Choose the running modes (camera test or single image test)
+1) cmake .
+1) make -j
+1) ./main
 
-1.CUDA 9.0
+## Results
+***
+The results will be like this in single image test mode:
 
-2.TensorRT 3.04
+![single](https://github.com/PKUZHOU/MTCNN_TensorRT/blob/master/pictures/result.jpg)
 
-3.cmake >=3.5
+## Speed
+***
+On my computer with nvidia-gt730 grapic card (it is very very poor) and intel i5 6500 cpu, when the min face-size is set to 60 pixels, the above image costs 20 to 30ms.
 
-4.a digital camera to run camera test.
-
-replace the tensorrt and cuda path in CMakeLists.txt, then run
-
-cmake .
-
-make -j
-
-./main
-
-the results will be
-
-![camera](https://github.com/PKUZHOU/MTCNN_TensorRT/blob/master/pictures/camera.png)
-
-on my computer with nvidia-gt730 and intel i5 6500, when the min face-size is set to 20 pixels, the inference time is about 24ms perframe.
+##TODO
+***
+Take other techniques (such as pipline and multithread) to speed up.
