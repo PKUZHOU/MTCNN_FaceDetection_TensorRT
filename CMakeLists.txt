@@ -5,10 +5,9 @@ add_definitions(-std=c++11)
 #set(QMAKE_CXXFLAGS "-std=c++11")
 include_directories(/opt/OpenBLAS/include)
 include_directories(/usr/local/cuda/include)
-include_directories(/usr/local/tensorrt/include)
-link_directories(/usr/local/tensorrt/lib)
-link_directories(/opt/OpenBLAS/lib)
-link_directories(/usr/local/cuda/lib64)
+include_directories(/home/zhou/tensorrt/include)
+link_directories(/home/zhou/tensorrt/lib)
+link_directories(/opt/cuda/lib64)
 
 find_package( OpenCV REQUIRED)
 
