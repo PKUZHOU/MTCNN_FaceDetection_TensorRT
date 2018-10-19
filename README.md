@@ -42,4 +42,4 @@ Take other techniques (such as pipline and multithread) to speed up.
 
 交流微信群：
 
-![vrcode](https://github.com/PKUZHOU/MTCNN_TensorRT/blob/master/pictures/vrcode.jpg)
+![vrcode](https://github.com/PKUZHOU/MTCNN_TensorRT/blob/master/pictures/vrcode.jpg =200x)
