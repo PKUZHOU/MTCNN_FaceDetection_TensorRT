@@ -39,3 +39,7 @@ On my computer with nvidia-gt730 grapic card (its performance is very very poor)
 
 ## TODO
 Take other techniques (such as pipline and multithread) to speed up.
+
+交流微信群：
+
+![vrcode](https://github.com/PKUZHOU/MTCNN_TensorRT/blob/master/pictures/vrcode.jpg)
