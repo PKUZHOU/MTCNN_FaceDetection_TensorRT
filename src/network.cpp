@@ -1,22 +1,13 @@
 #include "network.h"
-void image2Matrix(const Mat &image, const struct pBox *pbox){
-    if ((image.data == NULL) || (image.type() != CV_8UC3)){
-        cout << "image's type is wrong!!Please set CV_8UC3" << endl;
-        return;
-    }
-    if (pbox->pdata == NULL){
-        return;
-    }
-    mydataFmt *p = pbox->pdata;
-    for (int rowI = 0; rowI < image.rows; rowI++){
-        for (int colK = 0; colK < image.cols; colK++){
-            *p = (image.at<Vec3b>(rowI, colK)[2] - 127.5)*0.007812;
-            *(p + image.rows*image.cols) = (image.at<Vec3b>(rowI, colK)[1] - 127.5)*0.0078125;
-            *(p + 2*image.rows*image.cols) = (image.at<Vec3b>(rowI, colK)[0] - 127.5)*0.0078125;
-            p++;
-        }
+
+void continous(cuda::GpuMat & mat)
+{
+    if ( ! mat.isContinuous() )
+    {
+        mat = mat.clone();
     }
 }
+
 bool cmpScore(struct orderScore lsh, struct orderScore rsh){
     if(lsh.score<rsh.score)
         return true;

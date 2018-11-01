@@ -23,7 +23,7 @@ class Rnet {
 public:
     Rnet(const Rnet_engine &rnet_engine);
     ~Rnet();
-    void run(Mat &image, const Rnet_engine &engine);
+    void run(cuda::GpuMat &image, const Rnet_engine &engine);
     mydataFmt Rthreshold;
     cudaStream_t stream;
     struct pBox *location_;

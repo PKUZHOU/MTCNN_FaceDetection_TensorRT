@@ -15,14 +15,14 @@ __global__ void image2Matrix_kernel(int width, int height,  PtrStepSz<uchar3> im
     }
 
 }
-void gpu_image2Matrix(int width, int height,  GpuMat & image, float* matrix)
+void gpu_image2Matrix(int width, int height,  GpuMat & image, float* matrix, cudaStream_t &stream)
 {
     /*
         image : input image in GpuMat format, WHC arrangement and BGR order
         matrix: gpu float array, CHW and RGB order
     */
     dim3 block(width, height); // width * height blocks, 1 thread each
-    image2Matrix_kernel<<<block,1>>>(width,height,image,matrix);
+    image2Matrix_kernel<<<block,1,0,stream>>>(width,height,image,matrix);
 }
 
 

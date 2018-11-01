@@ -2,7 +2,7 @@
 //Created by zhou on 18-5-4.
 
 #include "rnet_rt.h"
-
+#include "kernels.h"
 
 Rnet_engine::Rnet_engine() : baseEngine("det2_relu.prototxt",
                                         "det2_relu.caffemodel",
@@ -74,12 +74,9 @@ Rnet::~Rnet()  {
     CHECK(cudaFree(buffers[outputLocation]));
 }
 
-void Rnet::run(Mat &image,  const Rnet_engine &rnet_engine) {
+void Rnet::run(cuda::GpuMat &image,  const Rnet_engine &rnet_engine) {
     //DMA the input to the GPU ,execute the batch asynchronously and DMA it back;
-    image2Matrix(image, this->rgb);
-    CHECK(cudaMemcpyAsync(buffers[inputIndex], this->rgb->pdata,
-                          BatchSize * INPUT_C * INPUT_H * INPUT_W * sizeof(float),
-                          cudaMemcpyHostToDevice, stream));
+    gpu_image2Matrix(INPUT_W,INPUT_H,image, (float*)buffers[inputIndex],stream);
     rnet_engine.context->enqueue(BatchSize, buffers, stream, nullptr);
     CHECK(cudaMemcpyAsync(this->location_->pdata, buffers[outputLocation], BatchSize * OUT_LOCATION_SIZE* sizeof(float),
                           cudaMemcpyDeviceToHost, stream));

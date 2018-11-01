@@ -24,19 +24,22 @@ public:
 };
 
 
-
 class Pnet
 {
 public:
     Pnet(int row,int col,const Pnet_engine& pnet_engine);
     ~Pnet();
-    void run(Mat &image, float scale,const Pnet_engine& engine);
+    void run(cuda::GpuMat &image, float scale,const Pnet_engine& engine);
     float nms_threshold;
     mydataFmt Pthreshold;
-    cudaStream_t stream;
-
+    cuda::Stream cv_stream;
+    cudaStream_t cuda_stream;
     vector<struct Bbox> boundingBox_;
     vector<orderScore> bboxScore_;
+    struct pBox *location_;
+    struct pBox *score_;
+    float scale;
+    void cpu_generateBbox(const struct pBox *score, const struct pBox *location, mydataFmt scale);
 private:
 
     const int BatchSize ;
@@ -51,10 +54,9 @@ private:
             outputProb,
             outputLocation;
     void *buffers[3];
-    struct pBox *location_;
-    struct pBox *score_;
-    struct pBox *rgb;
 
-    void generateBbox(const struct pBox *score, const struct pBox *location, mydataFmt scale);
+    float * input_matrix;
+
+
 };
 

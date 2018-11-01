@@ -90,7 +90,7 @@ void Onet::run(Mat &image,  const Onet_engine &onet_engine) {
 
 
     //DMA the input to the GPU ,execute the batch asynchronously and DMA it back;
-    image2Matrix(image, this->rgb);
+//    image2Matrix(image, this->rgb);
     CHECK(cudaMemcpyAsync(buffers[inputIndex], this->rgb->pdata,
                           BatchSize * INPUT_C * INPUT_H * INPUT_W * sizeof(float),
                           cudaMemcpyHostToDevice, stream));

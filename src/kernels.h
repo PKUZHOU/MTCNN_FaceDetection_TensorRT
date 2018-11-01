@@ -14,6 +14,6 @@
 #include <opencv2/cudawarping.hpp>
 using namespace cv;
 
-void gpu_image2Matrix(int width, int height , cuda::GpuMat & image, float* matrix);
+void gpu_image2Matrix(int width, int height , cuda::GpuMat & image, float* matrix, cudaStream_t& stream);
 void gpu_generatebox(void * score, void * location, float scale);
 #endif //KERNEL_H_INCLUDED

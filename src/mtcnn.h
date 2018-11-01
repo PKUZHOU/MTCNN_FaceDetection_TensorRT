@@ -4,14 +4,15 @@
 #include "pnet_rt.h"
 #include "rnet_rt.h"
 #include "onet_rt.h"
+
 class mtcnn
 {
 public:
     mtcnn(int row, int col);
     ~mtcnn();
-    void findFace(Mat &image);
+    void findFace(cuda::GpuMat &image);
 private:
-    Mat reImage;
+    cuda::GpuMat reImage;
     float nms_threshold[3];
     vector<float> scales_;
     Pnet_engine *pnet_engine;
