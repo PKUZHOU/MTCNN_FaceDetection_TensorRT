@@ -3,7 +3,7 @@
 //date 2017.5.21,20:27
 #ifndef NETWORK_H
 #define NETWORK_H
-//#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include <algorithm>
 #include <stdlib.h>
@@ -26,6 +26,8 @@
 #include <opencv2/cudafeatures2d.hpp>
 #include <opencv2/cudawarping.hpp>
 #include <opencv2/core/cuda_stream_accessor.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/cudaarithm.hpp>
 using namespace cv;
 #define CPU
 //void image2Matrix(const cuda::GpuMat &image, cuda::GpuMat &matrix);

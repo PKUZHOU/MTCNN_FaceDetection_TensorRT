@@ -19,7 +19,7 @@ Onet_engine::~Onet_engine() {
 
 void Onet_engine::init(int row, int col) {
     IHostMemory *gieModelStream{nullptr};
-    const int max_batch_size = 1;
+    const int max_batch_size = 512;
     //generate Tensorrt model
     caffeToGIEModel(prototxt, model, std::vector<std::string>{OUTPUT_PROB_NAME, OUTPUT_LOCATION_NAME,OUTPUT_POINT_NAME}, max_batch_size,
                     gieModelStream);
@@ -27,7 +27,7 @@ void Onet_engine::init(int row, int col) {
 }
 
 
-Onet::Onet(const Onet_engine &onet_engine) : BatchSize(1),
+Onet::Onet(const Onet_engine &onet_engine) : BatchSize(512),
                                              INPUT_C(3),
                                              Engine(onet_engine.context->getEngine()) {
 
@@ -56,10 +56,9 @@ Onet::Onet(const Onet_engine &onet_engine) : BatchSize(1),
     OUT_LOCATION_SIZE   = this->location_->width * this->location_->height * this->location_->channel;
     OUT_POINTS_SIZE     = this->points_->width * this->points_->height * this->points_->channel;
     //allocate memory for outputs
-    this->rgb->pdata        = (float *) malloc(INPUT_C * INPUT_H * INPUT_W * sizeof(float));
-    this->score_->pdata     = (float *) malloc(2 * sizeof(float));
-    this->location_->pdata  = (float *) malloc(4 * sizeof(float));
-    this->points_->pdata    = (float *) malloc(10 * sizeof(float));
+    this->score_->pdata     = (float *) malloc(BatchSize*2  * sizeof(float));
+    this->location_->pdata  = (float *) malloc(BatchSize*4  * sizeof(float));
+    this->points_->pdata    = (float *) malloc(BatchSize*10 * sizeof(float));
 
     assert(Engine.getNbBindings() == 4);
     inputIndex      = Engine.getBindingIndex(onet_engine.INPUT_BLOB_NAME);
@@ -86,21 +85,14 @@ Onet::~Onet()  {
     CHECK(cudaFree(buffers[outputPoints]));
 }
 
-void Onet::run(Mat &image,  const Onet_engine &onet_engine) {
+void Onet::run(const int input_num,  const Onet_engine &onet_engine, cudaStream_t &stream) {
 
-
-    //DMA the input to the GPU ,execute the batch asynchronously and DMA it back;
-//    image2Matrix(image, this->rgb);
-    CHECK(cudaMemcpyAsync(buffers[inputIndex], this->rgb->pdata,
-                          BatchSize * INPUT_C * INPUT_H * INPUT_W * sizeof(float),
-                          cudaMemcpyHostToDevice, stream));
-    onet_engine.context->enqueue(BatchSize, buffers, stream, nullptr);
-    CHECK(cudaMemcpyAsync(this->location_->pdata, buffers[outputLocation], BatchSize * OUT_LOCATION_SIZE* sizeof(float),
+    onet_engine.context->enqueue(input_num, buffers, stream, nullptr);
+    CHECK(cudaMemcpyAsync(this->location_->pdata, buffers[outputLocation], input_num * OUT_LOCATION_SIZE* sizeof(float),
                           cudaMemcpyDeviceToHost, stream));
-    CHECK(cudaMemcpyAsync(this->score_->pdata, buffers[outputProb], BatchSize * OUT_PROB_SIZE* sizeof(float),
+    CHECK(cudaMemcpyAsync(this->score_->pdata, buffers[outputProb], input_num * OUT_PROB_SIZE* sizeof(float),
                           cudaMemcpyDeviceToHost, stream));
-    CHECK(cudaMemcpyAsync(this->points_->pdata, buffers[outputPoints], BatchSize * OUT_POINTS_SIZE* sizeof(float),
+    CHECK(cudaMemcpyAsync(this->points_->pdata, buffers[outputPoints], input_num * OUT_POINTS_SIZE* sizeof(float),
                           cudaMemcpyDeviceToHost, stream));
     cudaStreamSynchronize(stream);
-
 }

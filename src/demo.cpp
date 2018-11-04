@@ -31,10 +31,19 @@
 
 void image_test(string image_path)
 {
+    cudaDeviceProp prop;
+    int deviceID;
+    cudaGetDevice(&deviceID);
+    cudaGetDeviceProperties(&prop, deviceID);
+    if (!prop.deviceOverlap)
+    {
+        printf("No device will handle overlaps. so no speed up from stream.\n");
+        return ;
+    }
     //test using images
     Mat image = imread(image_path);
     cuda::GpuMat Gpuimage(image);
-    cuda::resize(Gpuimage,Gpuimage,Size(1920,1080));
+    cuda::resize(Gpuimage,Gpuimage,Size(960,540));
     mtcnn find(Gpuimage.rows, Gpuimage.cols);
     clock_t start;
     start = clock();
@@ -52,6 +61,6 @@ void image_test(string image_path)
 int main()
 {
 //    camera_test(10000);
-    image_test("4.jpg");
+    image_test("timg.jpg");
     return 0;
 }

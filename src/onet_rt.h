@@ -22,13 +22,14 @@ class Onet {
 public:
     Onet(const Onet_engine &onet_engine);
     ~Onet();
-    void run(Mat &image, const Onet_engine &engine);
+    void run(const int input_num, const Onet_engine &engine, cudaStream_t& stream);
     mydataFmt Othreshold;
     cudaStream_t stream;
     struct pBox *location_;
     struct pBox *score_;
     struct pBox *points_;
     struct pBox *rgb;
+    void *buffers[4];
 private:
     const int BatchSize;
     const int INPUT_C;
@@ -40,7 +41,7 @@ private:
     int OUT_LOCATION_SIZE;
     int OUT_POINTS_SIZE;
     int inputIndex,outputProb,outputLocation,outputPoints;
-    void *buffers[4];
+
 
 };
 #endif //MAIN_ONET_RT_H

@@ -101,15 +101,16 @@ void Pnet::run(cuda::GpuMat &image, float scale, const Pnet_engine &pnet_engine)
 
 
     //DMA the input to the GPU ,execute the batch asynchronously and DMA it back;
-    // continous(image);
-
+//    continous(image);
     gpu_image2Matrix(INPUT_W,INPUT_H,image,(float*)buffers[inputIndex], cuda_stream);
     pnet_engine.context->enqueue(BatchSize, buffers, cuda_stream, nullptr);
+
+
 #ifdef CPU
-//    CHECK(cudaMemcpyAsync(this->score_->pdata, buffers[outputProb], BatchSize * OUT_PROB_SIZE * sizeof(float),
-//                          cudaMemcpyDeviceToHost, cuda_stream));
-//    CHECK(cudaMemcpyAsync(this->location_->pdata, buffers[outputLocation],
-//                          BatchSize * OUT_LOCATION_SIZE * sizeof(float), cudaMemcpyDeviceToHost, cuda_stream));
+    CHECK(cudaMemcpyAsync(this->score_->pdata, buffers[outputProb], BatchSize * OUT_PROB_SIZE * sizeof(float),
+                          cudaMemcpyDeviceToHost, cuda_stream));
+    CHECK(cudaMemcpyAsync(this->location_->pdata, buffers[outputLocation],
+                          BatchSize * OUT_LOCATION_SIZE * sizeof(float), cudaMemcpyDeviceToHost, cuda_stream));
 #endif
 #ifndef CPU
 //    generateBbox(buffers[outputProb],  buffers[outputLocation], scale);

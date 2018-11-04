@@ -11,6 +11,15 @@ public:
     mtcnn(int row, int col);
     ~mtcnn();
     void findFace(cuda::GpuMat &image);
+
+    //for second stage
+    const static int rnet_max_input_num = 2048;
+    const static int rnet_streams_num = 2048;
+    const static int onet_streams_num = 512;
+    cuda::Stream cv_streams[rnet_streams_num];
+    cudaStream_t cudastreams[rnet_streams_num];
+    cuda::GpuMat secImages_buffer[rnet_streams_num];
+    cuda::GpuMat thirdImages_buffer[onet_streams_num];
 private:
     cuda::GpuMat reImage;
     float nms_threshold[3];
@@ -27,6 +36,10 @@ private:
     Onet_engine *onet_engine;
     vector<struct Bbox> thirdBbox_;
     vector<struct orderScore> thirdBboxScore_;
+    float *boxes_data;
+    void* gpu_boxes_data;
+
+
 };
 
 #endif

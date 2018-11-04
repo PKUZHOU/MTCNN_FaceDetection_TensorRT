@@ -15,5 +15,7 @@
 using namespace cv;
 
 void gpu_image2Matrix(int width, int height , cuda::GpuMat & image, float* matrix, cudaStream_t& stream);
-void gpu_generatebox(void * score, void * location, float scale);
+//void gpu_generatebox(void * score, void * location, float scale);
+//void boxes2bactch(int num, int crop_size, int width, int height, int* boxes_data, cuda::GpuMat, cudaStream_t& stream);
+void gpu_image2Matrix_with_transpose(int width, int height,  cuda::GpuMat & image, float* matrix, cudaStream_t &stream);
 #endif //KERNEL_H_INCLUDED

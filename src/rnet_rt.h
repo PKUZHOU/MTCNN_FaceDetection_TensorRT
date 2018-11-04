@@ -8,7 +8,6 @@
 #include "baseEngine.h"
 #include "network.h"
 
-
 class Rnet_engine : public baseEngine {
 
 public:
@@ -16,30 +15,30 @@ public:
     ~Rnet_engine();
     void init(int row, int col);
     friend class Rnet;
-
 };
 
 class Rnet {
 public:
     Rnet(const Rnet_engine &rnet_engine);
     ~Rnet();
-    void run(cuda::GpuMat &image, const Rnet_engine &engine);
+    void run(const int input_num,const Rnet_engine &engine, cudaStream_t& stream);
     mydataFmt Rthreshold;
     cudaStream_t stream;
     struct pBox *location_;
     struct pBox *score_;
     struct pBox *rgb;
-private:
-    const int BatchSize;
-    const int INPUT_C;
-    const ICudaEngine &Engine;
-    //must be computed at runtime
     int INPUT_H;
     int INPUT_W;
     int OUT_PROB_SIZE;
     int OUT_LOCATION_SIZE;
     int inputIndex,outputProb,outputLocation;
     void *buffers[3];
+//    void generate_batches(void* boxes_data, cuda::GpuMat& image);
+private:
+    const int BatchSize;
+    const int INPUT_C;
+    const ICudaEngine &Engine;
+    //must be computed at runtime
 
 };
 

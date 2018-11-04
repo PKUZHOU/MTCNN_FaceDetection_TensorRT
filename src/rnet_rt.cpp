@@ -20,7 +20,7 @@ Rnet_engine::~Rnet_engine() {
 void Rnet_engine::init(int row, int col) {
 
     IHostMemory *gieModelStream{nullptr};
-    const int max_batch_size = 1;
+    const int max_batch_size = 2048;
     //generate Tensorrt model
     caffeToGIEModel(prototxt, model, std::vector<std::string>{OUTPUT_PROB_NAME, OUTPUT_LOCATION_NAME}, max_batch_size,
                     gieModelStream);
@@ -28,7 +28,7 @@ void Rnet_engine::init(int row, int col) {
 }
 
 
-Rnet::Rnet(const Rnet_engine &rnet_engine) : BatchSize(1),
+Rnet::Rnet(const Rnet_engine &rnet_engine) : BatchSize(2048),
                                              INPUT_C(3),
                                              Engine(rnet_engine.context->getEngine()) {
 
@@ -50,14 +50,15 @@ Rnet::Rnet(const Rnet_engine &rnet_engine) : BatchSize(1),
     OUT_PROB_SIZE = this->score_->width * this->score_->height * this->score_->channel;
     OUT_LOCATION_SIZE = this->location_->width * this->location_->height * this->location_->channel;
     //allocate memory for outputs
-    this->rgb->pdata = (float *) malloc(INPUT_C * INPUT_H * INPUT_W * sizeof(float));
-    this->score_->pdata = (float *) malloc(2 * sizeof(float));
-    this->location_->pdata = (float *) malloc(4 * sizeof(float));
+    this->rgb->pdata = (float *) malloc(BatchSize* INPUT_C * INPUT_H * INPUT_W * sizeof(float));
+    this->score_->pdata = (float *) malloc(BatchSize* OUT_PROB_SIZE * sizeof(float));
+    this->location_->pdata = (float *) malloc(BatchSize* OUT_LOCATION_SIZE * sizeof(float));
 
     assert(Engine.getNbBindings() == 3);
     inputIndex = Engine.getBindingIndex(rnet_engine.INPUT_BLOB_NAME);
     outputProb = Engine.getBindingIndex(rnet_engine.OUTPUT_PROB_NAME);
     outputLocation = Engine.getBindingIndex(rnet_engine.OUTPUT_LOCATION_NAME);
+
     //creat GPU buffers and stream
     CHECK(cudaMalloc(&buffers[inputIndex], BatchSize * INPUT_C * INPUT_H * INPUT_W * sizeof(float)));
     CHECK(cudaMalloc(&buffers[outputProb], BatchSize * OUT_PROB_SIZE * sizeof(float)));
@@ -74,14 +75,13 @@ Rnet::~Rnet()  {
     CHECK(cudaFree(buffers[outputLocation]));
 }
 
-void Rnet::run(cuda::GpuMat &image,  const Rnet_engine &rnet_engine) {
-    //DMA the input to the GPU ,execute the batch asynchronously and DMA it back;
-    gpu_image2Matrix(INPUT_W,INPUT_H,image, (float*)buffers[inputIndex],stream);
-    rnet_engine.context->enqueue(BatchSize, buffers, stream, nullptr);
-    CHECK(cudaMemcpyAsync(this->location_->pdata, buffers[outputLocation], BatchSize * OUT_LOCATION_SIZE* sizeof(float),
-                          cudaMemcpyDeviceToHost, stream));
-    CHECK(cudaMemcpyAsync(this->score_->pdata, buffers[outputProb], BatchSize * OUT_PROB_SIZE* sizeof(float),
-                          cudaMemcpyDeviceToHost, stream));
-    cudaStreamSynchronize(stream);
+void Rnet::run(const int input_num,  const Rnet_engine &rnet_engine, cudaStream_t &stream_) {
+//    //DMA the input to the GPU ,execute the batch asynchronously and DMA it back;
+    rnet_engine.context->enqueue(input_num, buffers, stream_, nullptr);
+    CHECK(cudaMemcpyAsync(this->location_->pdata, buffers[outputLocation], input_num * OUT_LOCATION_SIZE* sizeof(float),
+                          cudaMemcpyDeviceToHost, stream_));
+    CHECK(cudaMemcpyAsync(this->score_->pdata, buffers[outputProb], input_num * OUT_PROB_SIZE* sizeof(float),
+                          cudaMemcpyDeviceToHost, stream_));
+    cudaStreamSynchronize(stream_);
 
 }

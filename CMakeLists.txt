@@ -20,5 +20,3 @@ target_link_libraries( main ${OpenCV_LIBS} )
 target_link_libraries( main cudart)
 target_link_libraries( main nvinfer)
 target_link_libraries( main nvparsers)
-
-

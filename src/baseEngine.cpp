@@ -43,7 +43,7 @@ void baseEngine::caffeToGIEModel(const std::string &deployFile,                /
 
     // Build the engine
     builder->setMaxBatchSize(maxBatchSize);
-    builder->setMaxWorkspaceSize(1 << 25);
+    builder->setMaxWorkspaceSize(1 << 28);
     ICudaEngine*engine = builder->buildCudaEngine(*network);
     assert(engine);
     context = engine->createExecutionContext();
