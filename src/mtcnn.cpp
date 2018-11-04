@@ -206,19 +206,23 @@ void mtcnn::findFace(cuda::GpuMat &image){
     refineAndSquareBbox(thirdBbox_, image.rows, image.cols, true);
     nms(thirdBbox_, thirdBboxScore_, nms_threshold[2], "Min");
 
+
     cout<<"Onet time is  "<<1000*(double)(clock()-third_time)/CLOCKS_PER_SEC<<endl;
     cout<<"total run time "<<1000*(double)(clock()-first_time)/CLOCKS_PER_SEC<<endl;
+    //draw points and show images
+
     Mat cpuImage;
-    image.download(cpuImage);
+    image.download(cpuImage); // download to cpu
     for(vector<struct Bbox>::iterator it=thirdBbox_.begin(); it!=thirdBbox_.end();it++){
         if((*it).exist){
             rectangle(cpuImage, Point((*it).y1, (*it).x1), Point((*it).y2, (*it).x2), Scalar(0,0,255), 2,8,0);
             for(int num=0;num<5;num++)circle(cpuImage,Point((int)*(it->ppoint+num), (int)*(it->ppoint+num+5)),3,Scalar(0,255,255), -1);
         }
     }
-
     imshow("result", cpuImage);
     waitKey(0);
+
+
     firstBbox_.clear();
     firstOrderScore_.clear();
     secondBbox_.clear();
