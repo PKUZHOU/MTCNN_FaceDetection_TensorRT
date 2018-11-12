@@ -2,18 +2,21 @@
 #include "kernels.h"
 //#define LOG
 mtcnn::mtcnn(int row, int col){
+
     //set NMS thresholds
-    nms_threshold[0] = 0.6;
-    nms_threshold[1] = 0.7;
-    nms_threshold[2] = 0.7;
+    nms_threshold[0] = 0.5;
+    nms_threshold[1] = 0.6;
+    nms_threshold[2] = 0.6;
+
     //set minimal face size (weidth in pixels)
-    int minsize = 25;
+    int minsize = 40;
+
     /*config  the pyramids */
     float minl = row<col?row:col;
     int MIN_DET_SIZE = 12;
     float m = (float)MIN_DET_SIZE/minsize;
     minl *= m;
-    float factor = 0.709;
+    float factor = 0.79;
     int factor_count = 0;
     while(minl>MIN_DET_SIZE){
         if(factor_count>0)m = m*factor;
@@ -55,9 +58,13 @@ mtcnn::mtcnn(int row, int col){
     onet_engine = new Onet_engine();
     onet_engine->init(48,48);
     outNet = new Onet(*onet_engine);
+
     cout<<"End generating TensorRT runtime models"<<endl;
+
+    //init cuda stream pool
     for(int i = 0;i<rnet_streams_num;i++)
         cudastreams[i] = cuda::StreamAccessor::getStream(cv_streams[i]);
+
     boxes_data = (float*)malloc(sizeof(int)*4*rnet_max_input_num);
     CHECK(cudaMalloc(&gpu_boxes_data, sizeof(int)*4*rnet_max_input_num));
 
@@ -67,6 +74,8 @@ mtcnn::mtcnn(int row, int col){
 }
 
 mtcnn::~mtcnn(){
+    free(boxes_data);
+    CHECK(cudaFree(gpu_boxes_data));
     //delete []simpleFace_;
 }
 
@@ -75,6 +84,7 @@ void mtcnn::findFace(cuda::GpuMat &image){
     int count = 0;
 
     clock_t first_time = clock();
+    //Run pnet in parallel
     for (size_t i = 0; i < scales_.size(); i++) {
         int changedH = (int)ceil(image.rows*scales_.at(i));
         int changedW = (int)ceil(image.cols*scales_.at(i));
@@ -83,6 +93,7 @@ void mtcnn::findFace(cuda::GpuMat &image){
         (*simpleFace_[i]).run(reImage, scales_.at(i),pnet_engine[i]);
     }
 
+    //generate bbox
     for(int i = int(scales_.size())-1; i >= 0 ; i--)
     {
         cudaStreamSynchronize(simpleFace_[i]->cuda_stream); //Synchronize
@@ -105,39 +116,40 @@ void mtcnn::findFace(cuda::GpuMat &image){
     if(count<1)return;
     nms(firstBbox_, firstOrderScore_, nms_threshold[0]);
     refineAndSquareBbox(firstBbox_, image.rows, image.cols,true);
+
     cout<<"Pnet time is "<<1000*double(clock()-first_time)/CLOCKS_PER_SEC<<endl;
 
     //second stage
     count = 0;
     clock_t second_time = clock();
-    int inputed_num = 0;
-    int step = 24*24*3*sizeof(float);
+    int inputted_num = 0;
+    int second_step = 24*24*3;
 
     for(vector<struct Bbox>::iterator it=firstBbox_.begin(); it!=firstBbox_.end();it++){
         if((*it).exist){
             Rect temp((*it).y1, (*it).x1, (*it).y2-(*it).y1, (*it).x2-(*it).x1);
-            cuda::resize(image(temp), secImages_buffer[inputed_num],
-                    Size(24, 24), 0, 0, cv::INTER_LINEAR, cv_streams[inputed_num]);
-            gpu_image2Matrix_with_transpose(24,24,secImages_buffer[inputed_num],
-                    (float*)(refineNet->buffers[refineNet->inputIndex])+inputed_num*step,cudastreams[inputed_num]);
-            inputed_num++;
+            cuda::resize(image(temp), secImages_buffer[inputted_num],
+                    Size(24, 24), 0, 0, cv::INTER_LINEAR, cv_streams[inputted_num]);
+            gpu_image2Matrix_with_transpose(24,24,secImages_buffer[inputted_num],
+                    (float*)(refineNet->buffers[refineNet->inputIndex])+inputted_num*second_step,cudastreams[inputted_num]);
+            inputted_num++;
         }
     }
 
-    cout<<"Rnet input images number is "<<inputed_num<<endl;
+    cout<<"Rnet input images number is "<<inputted_num<<endl;
     cudaDeviceSynchronize();
-    refineNet->run(inputed_num, *rnet_engine, refineNet->stream);
+    refineNet->run(inputted_num, *rnet_engine, refineNet->stream);
 
-    int ind = 0;
+    int indx = 0;
     for(vector<struct Bbox>::iterator it=firstBbox_.begin(); it!=firstBbox_.end();it++)
     {
         if(it->exist)
         {
-            if(*(refineNet->score_->pdata+ ind*refineNet->OUT_PROB_SIZE+1)>refineNet->Rthreshold)
+            if(*(refineNet->score_->pdata+ indx*refineNet->OUT_PROB_SIZE+1)>refineNet->Rthreshold)
             {
-                memcpy(it->regreCoord, refineNet->location_->pdata+ind*refineNet->OUT_LOCATION_SIZE, refineNet->OUT_LOCATION_SIZE*sizeof(float));
+                memcpy(it->regreCoord, refineNet->location_->pdata+indx*refineNet->OUT_LOCATION_SIZE, refineNet->OUT_LOCATION_SIZE*sizeof(float));
                 it->area = (it->x2 - it->x1)*(it->y2 - it->y1);
-                it->score = *(refineNet->score_->pdata +ind*refineNet->OUT_PROB_SIZE+1);
+                it->score = *(refineNet->score_->pdata +indx*refineNet->OUT_PROB_SIZE+1);
                 secondBbox_.push_back(*it);
                 order.score = it->score;
                 order.oriOrder = count++;
@@ -146,7 +158,7 @@ void mtcnn::findFace(cuda::GpuMat &image){
             else{
                 it->exist=false;
             }
-            ind++;
+            indx++;
         }
     }
 
@@ -159,32 +171,32 @@ void mtcnn::findFace(cuda::GpuMat &image){
     //third stage
     count = 0;
     clock_t third_time = clock();
-    inputed_num = 0;
-    step = 48*48*3*sizeof(float);
+    inputted_num = 0;
+    int third_step = 48*48*3;
     for(vector<struct Bbox>::iterator it=secondBbox_.begin(); it!=secondBbox_.end();it++){
         if((*it).exist){
             Rect temp((*it).y1, (*it).x1, (*it).y2-(*it).y1, (*it).x2-(*it).x1);
-            cuda::resize(image(temp), thirdImages_buffer[inputed_num],
-                         Size(48, 48), 0, 0, cv::INTER_LINEAR, cv_streams[inputed_num]);
-            gpu_image2Matrix_with_transpose(48,48,thirdImages_buffer[inputed_num],
-                                            (float*)(outNet->buffers[refineNet->inputIndex])+inputed_num*step,cudastreams[inputed_num]);
-            inputed_num++;
+            cuda::resize(image(temp), thirdImages_buffer[inputted_num],
+                         Size(48, 48), 0, 0, cv::INTER_LINEAR, cv_streams[inputted_num]);
+            gpu_image2Matrix_with_transpose(48,48,thirdImages_buffer[inputted_num],
+                                            (float*)(outNet->buffers[refineNet->inputIndex])+inputted_num*third_step,cudastreams[inputted_num]);
+            inputted_num++;
         }
     }
 
     cudaDeviceSynchronize();
-    outNet->run(inputed_num, *onet_engine, outNet->stream);
-    cout<<"Onet input images number is "<<inputed_num<<endl;
+    outNet->run(inputted_num, *onet_engine, outNet->stream);
+    cout<<"Onet input images number is "<<inputted_num<<endl;
 
-    ind = 0;
+    indx = 0;
     for(vector<struct Bbox>::iterator it=secondBbox_.begin(); it!=secondBbox_.end();it++){
         if((*it).exist){
             mydataFmt *pp=NULL;
-            if(*(outNet->score_->pdata + 2*ind +1)>outNet->Othreshold){
-                memcpy(it->regreCoord, outNet->location_->pdata + 4*ind, 4*sizeof(mydataFmt));
+            if(*(outNet->score_->pdata + 2*indx +1)>outNet->Othreshold){
+                memcpy(it->regreCoord, outNet->location_->pdata + 4*indx, 4*sizeof(mydataFmt));
                 it->area = (it->x2 - it->x1)*(it->y2 - it->y1);
-                it->score = *(outNet->score_->pdata +2*ind +1);
-                pp = outNet->points_->pdata + 10* ind;
+                it->score = *(outNet->score_->pdata +2*indx +1);
+                pp = outNet->points_->pdata + 10* indx;
                 for(int num=0;num<5;num++){
                     (it->ppoint)[num] = it->y1 + (it->y2 - it->y1)*(*(pp+num));
                 }
@@ -199,6 +211,7 @@ void mtcnn::findFace(cuda::GpuMat &image){
             else{
                 it->exist=false;
             }
+            indx++;
         }
     }
 
@@ -209,8 +222,8 @@ void mtcnn::findFace(cuda::GpuMat &image){
 
     cout<<"Onet time is  "<<1000*(double)(clock()-third_time)/CLOCKS_PER_SEC<<endl;
     cout<<"total run time "<<1000*(double)(clock()-first_time)/CLOCKS_PER_SEC<<endl;
-    //draw points and show images
 
+    //draw points and show images
     Mat cpuImage;
     image.download(cpuImage); // download to cpu
     for(vector<struct Bbox>::iterator it=thirdBbox_.begin(); it!=thirdBbox_.end();it++){

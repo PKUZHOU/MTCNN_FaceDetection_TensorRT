@@ -43,7 +43,7 @@ void image_test(string image_path)
     //test using images
     Mat image = imread(image_path);
     cuda::GpuMat Gpuimage(image);
-    cuda::resize(Gpuimage,Gpuimage,Size(960,540));
+    cuda::resize(Gpuimage,Gpuimage,Size(1280,image.rows*1280/image.cols));
     mtcnn find(Gpuimage.rows, Gpuimage.cols);
     clock_t start;
     start = clock();
@@ -61,6 +61,6 @@ void image_test(string image_path)
 int main()
 {
 //    camera_test(10000);
-    image_test("timg.jpg");
+    image_test("somany_face.jpg");
     return 0;
 }

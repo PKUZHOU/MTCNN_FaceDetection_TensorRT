@@ -31,7 +31,7 @@ Onet::Onet(const Onet_engine &onet_engine) : BatchSize(512),
                                              INPUT_C(3),
                                              Engine(onet_engine.context->getEngine()) {
 
-    Othreshold      = 0.8;
+    Othreshold      = 0.7;
     this->score_    = new pBox;
     this->location_ = new pBox;
     this->rgb       = new pBox;

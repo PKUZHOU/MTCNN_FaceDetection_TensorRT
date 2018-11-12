@@ -51,7 +51,6 @@ void Pnet_engine::init(int row, int col) {
 Pnet::Pnet(int row, int col, const Pnet_engine &pnet_engine) : BatchSize(1),
                                                                INPUT_C(3), Engine(pnet_engine.context->getEngine()) {
     Pthreshold = 0.6;
-    nms_threshold = 0.5;
     this->score_ = new pBox;
     this->location_ = new pBox;
 //    this->rgb = new pBox;
