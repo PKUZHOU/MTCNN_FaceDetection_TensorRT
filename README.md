@@ -6,6 +6,9 @@ This repository is based on https://github.com/AlphaQi/MTCNN-light.git
 
 ## Notations
 
+2018/11/14: I have ported most of the computing to GPU using OpenCV CUDA warper and CUDA kernels wrote by myself.
+See branch all_gpu for more details, note that you need opencv 3.0+ built with CUDA support to run the projects. The speed is about 5-10 times faster on my GTX1080 GPU than master branch.
+
 2018/10/2: Good news! Now you can run the whole MTCNN using TenorRT 3.0 or 4.0! 
 
 I adopt the original models from offical project https://github.com/kpzhang93/MTCNN_face_detection_alignment and do the following modifications:
@@ -38,7 +41,7 @@ The result will be like this in single image test mode:
 On my computer with nvidia-gt730 grapic card (its performance is very very poor) and intel i5 6500 cpu, when the min face-size is set to 60 pixels, the above image costs 20 to 30ms.
 
 ## TODO
-I am rewriting most of the operations using Opencv-CUDA or CUDA codes to speed up, see branch all_gpu.
+Inplement the whole processing using GPU computing.
 
 交流微信群：
 
