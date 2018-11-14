@@ -32,7 +32,7 @@ Rnet::Rnet(const Rnet_engine &rnet_engine) : BatchSize(2048),
                                              INPUT_C(3),
                                              Engine(rnet_engine.context->getEngine()) {
 
-    Rthreshold = 0.6;
+    Rthreshold = 0.7;
     this->score_ = new pBox;
     this->location_ = new pBox;
     this->rgb = new pBox;

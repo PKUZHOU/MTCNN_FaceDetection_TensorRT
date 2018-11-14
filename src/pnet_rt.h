@@ -30,7 +30,6 @@ public:
     Pnet(int row,int col,const Pnet_engine& pnet_engine);
     ~Pnet();
     void run(cuda::GpuMat &image, float scale,const Pnet_engine& engine);
-    float nms_threshold;
     mydataFmt Pthreshold;
     cuda::Stream cv_stream;
     cudaStream_t cuda_stream;

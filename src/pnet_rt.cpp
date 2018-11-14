@@ -68,7 +68,7 @@ Pnet::Pnet(int row, int col, const Pnet_engine &pnet_engine) : BatchSize(1),
     OUT_PROB_SIZE = this->score_->width * this->score_->height * this->score_->channel;
     OUT_LOCATION_SIZE = this->location_->width * this->location_->height * this->location_->channel;
     //allocate memory for outputs
-//    this->rgb->pdata = (float *) malloc(INPUT_C * INPUT_H * INPUT_W * sizeof(float));
+
     this->score_->pdata = (float *) malloc(OUT_PROB_SIZE * sizeof(float));
     this->location_->pdata = (float *) malloc(OUT_LOCATION_SIZE * sizeof(float));
 

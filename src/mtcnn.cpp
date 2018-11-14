@@ -16,7 +16,7 @@ mtcnn::mtcnn(int row, int col){
     int MIN_DET_SIZE = 12;
     float m = (float)MIN_DET_SIZE/minsize;
     minl *= m;
-    float factor = 0.79;
+    float factor = 0.709;
     int factor_count = 0;
     while(minl>MIN_DET_SIZE){
         if(factor_count>0)m = m*factor;
@@ -74,9 +74,20 @@ mtcnn::mtcnn(int row, int col){
 }
 
 mtcnn::~mtcnn(){
-    free(boxes_data);
-    CHECK(cudaFree(gpu_boxes_data));
-    //delete []simpleFace_;
+
+//    delete(pnet_engine);
+//    delete(rnet_engine);
+//    delete(onet_engine);
+//    for (int i = 0;i<scales_.size();i++)
+//    {
+//        delete(simpleFace_[i]);
+//    }
+//    simpleFace_ = NULL;
+//    delete refineNet;
+//    delete outNet;
+//    free(boxes_data);
+//    CHECK(cudaFree(gpu_boxes_data));
+
 }
 
 void mtcnn::findFace(cuda::GpuMat &image){
@@ -84,21 +95,22 @@ void mtcnn::findFace(cuda::GpuMat &image){
     int count = 0;
 
     clock_t first_time = clock();
+
     //Run pnet in parallel
     for (size_t i = 0; i < scales_.size(); i++) {
         int changedH = (int)ceil(image.rows*scales_.at(i));
         int changedW = (int)ceil(image.cols*scales_.at(i));
         (*simpleFace_[i]).scale = scales_.at(i);
-        cuda::resize(image, reImage, Size(changedW, changedH), 0, 0, cv::INTER_LINEAR,simpleFace_[i]->cv_stream);
-        (*simpleFace_[i]).run(reImage, scales_.at(i),pnet_engine[i]);
+        cuda::resize(image, firstImage_buffer[i], Size(changedW, changedH), 0, 0, cv::INTER_LINEAR,simpleFace_[i]->cv_stream);
+        (*simpleFace_[i]).run(firstImage_buffer[i], scales_.at(i),pnet_engine[i]);
     }
 
     //generate bbox
-    for(int i = int(scales_.size())-1; i >= 0 ; i--)
+    for(int i = scales_.size()-1;i>=0;i--)
     {
         cudaStreamSynchronize(simpleFace_[i]->cuda_stream); //Synchronize
         simpleFace_[i]->cpu_generateBbox(simpleFace_[i]->score_, simpleFace_[i]->location_, simpleFace_[i]->scale);
-        nms((*simpleFace_[i]).boundingBox_, (*simpleFace_[i]).bboxScore_, (*simpleFace_[i]).nms_threshold);
+        nms((*simpleFace_[i]).boundingBox_, (*simpleFace_[i]).bboxScore_, nms_threshold[0]);
         for(vector<struct Bbox>::iterator it=(*simpleFace_[i]).boundingBox_.begin(); it!= (*simpleFace_[i]).boundingBox_.end();it++){
             if((*it).exist){
                 firstBbox_.push_back(*it);
