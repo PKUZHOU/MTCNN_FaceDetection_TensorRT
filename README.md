@@ -1,4 +1,4 @@
-# MTCNN_TensorRT
+blob# MTCNN_TensorRT
 
 **MTCNN Face detection algorithm's C++ implementation with NVIDIA TensorRT Inference acceleration SDK.**
 
@@ -45,4 +45,4 @@ Inplement the whole processing using GPU computing.
 
 交流微信群：
 
-![qrcode](https://github.com/PKUZHOU/MTCNN_TensorRT/blob/master/pictures/qrcode.jpg)
+![qrcode](https://github.com/PKUZHOU/MTCNN_FaceDetection_TensorRT/blob/master/pictures/qrcode.png)
