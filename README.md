@@ -45,4 +45,4 @@ Inplement the whole processing using GPU computing.
 
 交流微信群：
 
-![vrcode](https://github.com/PKUZHOU/MTCNN_TensorRT/blob/master/pictures/vrcode.jpg)
+![qrcode](https://github.com/PKUZHOU/MTCNN_TensorRT/blob/master/pictures/qrcode.jpg)
