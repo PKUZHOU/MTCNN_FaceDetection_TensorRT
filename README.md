@@ -45,4 +45,4 @@ Inplement the whole processing using GPU computing.
 
 交流微信群：
 
-![qrcode](https://github.com/PKUZHOU/MTCNN_FaceDetection_TensorRT/blob/master/pictures/QR.png)
+加微信Z751722308拉进群
