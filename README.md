@@ -43,6 +43,4 @@ On my computer with nvidia-gt730 grapic card (its performance is very very poor)
 ## TODO
 Inplement the whole processing using GPU computing.
 
-交流微信群：
 
-加微信Z751722308拉进群
