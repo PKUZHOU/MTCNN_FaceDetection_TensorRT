@@ -9,7 +9,7 @@ __global__ void image2Matrix_kernel(int width, int height,  PtrStepSz<uchar3> im
     const int w = blockIdx.x;
     const int h = blockIdx.y;
 
-    float alpha = -127.5;
+    float alpha = 127.5;
     float beta = 0.0078125;
     if (w < width && h < height)
     {
@@ -24,7 +24,7 @@ __global__ void image2Matrix_with_transpose_kernel(int width, int height,  PtrSt
 
     const int w = blockIdx.x;
     const int h = blockIdx.y;
-    float alpha = -127.5;
+    float alpha = 127.5;
     float beta = 0.0078125;
     if (w < width && h < height)
     {
